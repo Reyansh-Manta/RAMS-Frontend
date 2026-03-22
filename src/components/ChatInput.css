@@ -54,7 +54,7 @@
 }
 
 .chat-send-btn-active {
-  background: linear-gradient(135deg, var(--color-accent), #6a9f38);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-info));
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm), 0 0 12px var(--color-accent-glow);
 }

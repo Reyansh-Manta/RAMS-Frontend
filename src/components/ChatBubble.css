@@ -26,7 +26,7 @@
 }
 
 .chat-bubble-bot .chat-bubble-avatar {
-  background: linear-gradient(135deg, var(--color-accent), #6a9f38);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-info));
   color: var(--color-text-inverse);
   box-shadow: 0 0 10px var(--color-accent-glow);
 }
@@ -83,7 +83,7 @@
 }
 
 .chat-bubble-user .chat-bubble-text {
-  background: linear-gradient(135deg, var(--color-accent), #6a9f38);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-info));
   color: var(--color-text-inverse);
   border-top-right-radius: var(--radius-sm);
 }

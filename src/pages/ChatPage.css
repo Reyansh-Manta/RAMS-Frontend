@@ -62,7 +62,7 @@
   width: 90px;
   height: 90px;
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, var(--color-accent), #4a8520, var(--color-accent-hover));
+  background: linear-gradient(135deg, var(--color-accent), var(--color-info), var(--color-accent-hover));
   background-size: 200% 200%;
   animation: gradientShift 4s ease infinite, float 3s ease-in-out infinite;
   display: flex;

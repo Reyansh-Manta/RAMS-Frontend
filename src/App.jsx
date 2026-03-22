@@ -5,14 +5,16 @@ import Navbar from './components/Navbar';
 import ChatPage from './pages/ChatPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ChatProvider>
-          <Navbar />
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <ChatProvider>
+            <Navbar />
           <Routes>
             <Route path="/" element={<ChatPage />} />
             <Route path="/admin" element={<AdminLogin />} />
@@ -20,7 +22,8 @@ function App() {
           </Routes>
         </ChatProvider>
       </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

@@ -1,11 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { RiRobot2Fill, RiShieldUserLine, RiLogoutBoxRLine } from 'react-icons/ri';
+import { useTheme } from '../context/ThemeContext';
+import { RiRobot2Fill, RiShieldUserLine, RiLogoutBoxRLine, RiSunLine, RiMoonLine } from 'react-icons/ri';
 import { motion } from 'framer-motion';
 import './Navbar.css';
 
 export default function Navbar() {
   const { isAdmin, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -25,6 +27,10 @@ export default function Navbar() {
       </Link>
 
       <div className="navbar-actions">
+        <button className="btn-icon" onClick={toggleTheme} aria-label="Toggle theme" style={{ marginRight: '8px' }}>
+          {theme === 'light' ? <RiMoonLine size={20} /> : <RiSunLine size={20} />}
+        </button>
+
         {isAdmin && isAdminRoute ? (
           <>
             <Link to="/" className="btn-secondary navbar-btn">
