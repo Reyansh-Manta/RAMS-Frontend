@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../apiClient';
 import {
   RiFileList3Line, RiAddCircleLine, RiDeleteBinLine,
   RiLinkM, RiHashtag, RiTimeLine, RiFileTextLine,
@@ -39,23 +40,33 @@ export default function AdminDashboard() {
     if (!docLink.trim() || !docId.trim()) return;
 
     setIsUploading(true);
-    // Simulate upload
-    await new Promise(r => setTimeout(r, 1000));
+    
+    try {
+      await apiClient.post('/document-sources', {
+        title: docId.trim(),
+        doc_id: docId.trim(),
+        url: docLink.trim()
+      });
 
-    const newDoc = {
-      id: docId.trim(),
-      link: docLink.trim(),
-      uploadedAt: new Date().toISOString(),
-      status: 'active',
-    };
+      const newDoc = {
+        id: docId.trim(),
+        link: docLink.trim(),
+        uploadedAt: new Date().toISOString(),
+        status: 'active',
+      };
 
-    const updated = [newDoc, ...documents];
-    saveDocuments(updated);
-    setDocLink('');
-    setDocId('');
-    setIsUploading(false);
-    setUploadSuccess(true);
-    setTimeout(() => setUploadSuccess(false), 3000);
+      const updated = [newDoc, ...documents];
+      saveDocuments(updated);
+      setDocLink('');
+      setDocId('');
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to upload document:', error);
+      alert('Failed to upload document. See console for details.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDelete = (docId) => {
