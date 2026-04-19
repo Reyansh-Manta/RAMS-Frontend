@@ -5,6 +5,14 @@
       "destination": "https://rams-kgmh.onrender.com/api/:path*"
     },
     {
+      "source": "/document-sources/:path*",
+      "destination": "https://rams-kgmh.onrender.com/document-sources/:path*"
+    },
+    {
+      "source": "/document-sources",
+      "destination": "https://rams-kgmh.onrender.com/document-sources"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
