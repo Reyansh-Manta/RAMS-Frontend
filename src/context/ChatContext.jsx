@@ -94,14 +94,44 @@ export function ChatProvider({ children }) {
     conv.messages = newMessages;
     saveConversations(currentConvs);
 
-    // Simulate bot typing
+    // API call to the backend
     setIsTyping(true);
-    await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 1500));
+    let botContent = "Sorry, I couldn't connect to the backend.";
+    
+    try {
+      // Use the Render backend in production, and localhost:8000 for local dev
+      const apiUrl = import.meta.env.PROD 
+        ? 'https://rams-kgmh.onrender.com/ask' 
+        : 'http://localhost:8000/ask';
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: text })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        botContent = data.answer || "No answer provided.";
+        
+        if (data.context && data.context.length > 0) {
+          botContent += "\n\n**Retrieved Context Snippets:**\n";
+          data.context.forEach((chunk, i) => {
+            botContent += `\n[${i + 1}] ${chunk.text}\n`;
+          });
+        }
+      } else {
+        botContent = `Error from server: ${response.statusText}`;
+      }
+    } catch (error) {
+      console.error("API error:", error);
+      botContent = "Error connecting to the backend API.";
+    }
 
     const botMsg = {
       id: (Date.now() + 1).toString(),
       role: 'bot',
-      content: BOT_RESPONSES[Math.floor(Math.random() * BOT_RESPONSES.length)],
+      content: botContent,
       timestamp: new Date().toISOString(),
     };
 
