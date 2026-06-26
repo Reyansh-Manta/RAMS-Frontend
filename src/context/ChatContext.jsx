@@ -113,13 +113,6 @@ export function ChatProvider({ children }) {
       if (response.ok) {
         const data = await response.json();
         botContent = data.answer || "No answer provided.";
-        
-        if (data.context && data.context.length > 0) {
-          botContent += "\n\n**Retrieved Context Snippets:**\n";
-          data.context.forEach((chunk, i) => {
-            botContent += `\n[${i + 1}] ${chunk.text}\n`;
-          });
-        }
       } else {
         botContent = `Error from server: ${response.statusText}`;
       }
