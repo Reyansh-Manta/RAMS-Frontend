@@ -198,3 +198,33 @@
   color: var(--color-text-muted);
   line-height: 1.5;
 }
+
+.admin-login-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin: 16px 0;
+}
+.admin-login-divider::before,
+.admin-login-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.admin-login-divider:not(:empty)::before {
+  margin-right: .5em;
+}
+.admin-login-divider:not(:empty)::after {
+  margin-left: .5em;
+}
+.google-login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+}
+

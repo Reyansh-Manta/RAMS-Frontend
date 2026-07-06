@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react';
+import apiClient from '../apiClient';
 
 const ChatContext = createContext(null);
 
@@ -99,26 +100,11 @@ export function ChatProvider({ children }) {
     let botContent = "Sorry, I couldn't connect to the backend.";
     
     try {
-      // Use the Render backend in production, and localhost:8000 for local dev
-      const apiUrl = import.meta.env.PROD 
-        ? 'https://rams-kgmh.onrender.com/ask' 
-        : 'http://localhost:8000/ask';
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: text })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        botContent = data.answer || "No answer provided.";
-      } else {
-        botContent = `Error from server: ${response.statusText}`;
-      }
+      const response = await apiClient.post('/ask', { query: text });
+      botContent = response.data.answer || "No answer provided.";
     } catch (error) {
       console.error("API error:", error);
-      botContent = "Error connecting to the backend API.";
+      botContent = error.response?.data?.detail || "Error connecting to the backend API.";
     }
 
     const botMsg = {
