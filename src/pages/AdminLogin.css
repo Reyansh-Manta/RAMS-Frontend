@@ -228,3 +228,9 @@
   margin-top: 8px;
 }
 
+.google-login-container > div {
+  margin: 0 auto !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
