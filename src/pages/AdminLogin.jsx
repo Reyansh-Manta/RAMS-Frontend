@@ -10,12 +10,9 @@ import { Link } from 'react-router-dom';
 import './AdminLogin.css';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, googleLogin, isAuthenticated, isAdmin } = useAuth();
+  const { googleLogin, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   // Redirect to dashboard if authenticated and admin
@@ -64,33 +61,6 @@ export default function AdminLogin() {
     }
   };
 
-  const handleDevGoogleLogin = async () => {
-    // Development fallback to bypass real Google OAuth popups locally
-    setError('');
-    setIsLoading(true);
-    const result = await googleLogin('mock_google_id_token');
-    if (!result.success) {
-      setError(result.error);
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (!username.trim() || !password.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
-    const result = await login(username.trim(), password.trim());
-    if (!result.success) {
-      setError(result.error);
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="admin-login-page">
@@ -117,87 +87,28 @@ export default function AdminLogin() {
             <RiShieldUserLine size={28} />
           </div>
           <h1 className="admin-login-title">RAMS Authorization</h1>
-          <p className="admin-login-desc">Sign in with Google or credentials</p>
+          <p className="admin-login-desc">Sign in with Google</p>
         </div>
 
-        <form className="admin-login-form" onSubmit={handleSubmit}>
-          <div className="admin-login-field">
-            <label className="admin-login-label">Username or Email</label>
-            <div className="admin-login-input-wrap">
-              <RiUserLine className="admin-login-input-icon" size={18} />
-              <input
-                type="text"
-                className="input-field admin-login-input"
-                placeholder="Enter username or email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="off"
-              />
-            </div>
-          </div>
-
-          <div className="admin-login-field">
-            <label className="admin-login-label">Password</label>
-            <div className="admin-login-input-wrap">
-              <RiLockLine className="admin-login-input-icon" size={18} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                className="input-field admin-login-input"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="off"
-              />
-              <button
-                type="button"
-                className="admin-login-eye-btn"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <motion.div
-              className="admin-login-error"
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {error}
-            </motion.div>
-          )}
-
-          <button
-            type="submit"
-            className="btn-primary admin-login-submit"
-            disabled={isLoading}
+        {error && (
+          <motion.div
+            className="admin-login-error"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ marginBottom: '20px' }}
           >
-            {isLoading ? (
-              <span className="admin-login-spinner" />
-            ) : (
-              <>
-                <RiShieldUserLine size={18} />
-                Sign In
-              </>
-            )}
-          </button>
-        </form>
+            {error}
+          </motion.div>
+        )}
 
-        <div className="admin-login-divider">OR</div>
+        {isLoading && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <span className="admin-login-spinner" />
+          </div>
+        )}
 
         {/* Official Google Button */}
-        <div id="google-signin-button" className="google-login-container"></div>
-
-        {/* Development Fallback Google Button */}
-        <button 
-          onClick={handleDevGoogleLogin} 
-          className="btn-secondary" 
-          style={{ width: '100%', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-        >
-          <RiGoogleFill size={18} />
-          Sign In with Google (Dev Fallback)
-        </button>
+        <div id="google-signin-button" className="google-login-container" style={{ display: isLoading ? 'none' : 'block' }}></div>
 
         <p className="admin-login-footer">
           Protected area. Authorized users can access the dashboard or ask questions in the chat.
