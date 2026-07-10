@@ -1,31 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  RiShieldUserLine, RiLockLine, RiUserLine, RiEyeLine, 
-  RiEyeOffLine, RiArrowLeftLine, RiGoogleFill 
-} from 'react-icons/ri';
+import { RiShieldUserLine, RiArrowLeftLine } from 'react-icons/ri';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import './AdminLogin.css';
+import './Login.css';
 
-export default function AdminLogin() {
+export default function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { googleLogin, isAuthenticated, isAdmin } = useAuth();
+  const { googleLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if authenticated and admin
+  // Redirect to dashboard or home if authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      if (isAdmin) {
+      if (user?.role === 'admin') {
         navigate('/admin/dashboard', { replace: true });
       } else {
-        // If logged in but not an admin, show error or redirect to home page
-        setError('Access denied: You do not have administrator permissions.');
+        navigate('/', { replace: true });
       }
     }
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   // Initialize Google Sign-In
   useEffect(() => {
@@ -58,41 +54,50 @@ export default function AdminLogin() {
     if (!result.success) {
       setError(result.error);
       setIsLoading(false);
+    } else if (result.registered === false) {
+      // Redirect new user to registration flow
+      navigate('/register', {
+        state: {
+          idToken: response.credential,
+          email: result.data.email,
+          name: result.data.name
+        }
+      });
     }
+    // If successful and registered, the useEffect above will redirect them.
   };
 
-
   return (
-    <div className="admin-login-page">
+    <div className="login-page">
       {/* Background decoration */}
-      <div className="admin-login-bg">
-        <div className="admin-login-orb admin-login-orb-1" />
-        <div className="admin-login-orb admin-login-orb-2" />
-        <div className="admin-login-orb admin-login-orb-3" />
+      <div className="login-bg">
+        <div className="login-orb login-orb-1" />
+        <div className="login-orb login-orb-2" />
+        <div className="login-orb login-orb-3" />
       </div>
 
       <motion.div
-        className="admin-login-card glass-card"
+        className="login-card glass-card"
         initial={{ opacity: 0, y: 30, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <Link to="/" className="admin-login-back">
+        <Link to="/" className="login-back">
           <RiArrowLeftLine size={18} />
           Back to Chat
         </Link>
 
-        <div className="admin-login-header">
-          <div className="admin-login-icon">
+        <div className="login-header">
+          <div className="login-icon">
             <RiShieldUserLine size={28} />
           </div>
-          <h1 className="admin-login-title">RAMS Authorization</h1>
-          <p className="admin-login-desc">Sign in with Google</p>
+          <h1 className="login-title">RAMS Sign In</h1>
+          <p className="login-desc">Sign in with Google to continue</p>
         </div>
 
         {error && (
           <motion.div
-            className="admin-login-error"
+            className="login-error"
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             style={{ marginBottom: '20px' }}
@@ -103,15 +108,15 @@ export default function AdminLogin() {
 
         {isLoading && (
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-            <span className="admin-login-spinner" />
+            <span className="login-spinner" />
           </div>
         )}
 
         {/* Official Google Button */}
         <div id="google-signin-button" className="google-login-container" style={{ display: isLoading ? 'none' : 'block' }}></div>
 
-        <p className="admin-login-footer">
-          Protected area. Authorized users can access the dashboard or ask questions in the chat.
+        <p className="login-footer">
+          By continuing, you agree to our Terms of Service.
         </p>
       </motion.div>
     </div>

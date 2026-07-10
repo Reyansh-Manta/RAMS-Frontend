@@ -45,25 +45,14 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (usernameOrEmail, password) => {
-    try {
-      const response = await apiClient.post('/auth/login', {
-        username_or_email: usernameOrEmail,
-        password: password
-      });
-      return handleAuthSuccess(response.data);
-    } catch (error) {
-      console.error('Login failed:', error);
-      const message = error.response?.data?.detail || 'Invalid username/email or password';
-      return { success: false, error: message };
-    }
-  };
-
   const googleLogin = async (idToken) => {
     try {
       const response = await apiClient.post('/auth/google', {
         id_token: idToken
       });
+      if (response.data.registered === false) {
+        return { success: true, registered: false, data: response.data };
+      }
       return handleAuthSuccess(response.data);
     } catch (error) {
       console.error('Google login failed:', error);
@@ -72,19 +61,13 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const signup = async (username, email, fullName, password) => {
+  const googleRegister = async (registrationData) => {
     try {
-      const response = await apiClient.post('/auth/signup', {
-        username,
-        email,
-        full_name: fullName,
-        password,
-        role: 'user'
-      });
-      return { success: true, data: response.data };
+      const response = await apiClient.post('/auth/register', registrationData);
+      return handleAuthSuccess(response.data);
     } catch (error) {
-      console.error('Signup failed:', error);
-      const message = error.response?.data?.detail || 'Signup failed';
+      console.error('Google register failed:', error);
+      const message = error.response?.data?.detail || 'Registration failed';
       return { success: false, error: message };
     }
   };
@@ -111,9 +94,8 @@ export function AuthProvider({ children }) {
       isAuthenticated, 
       isAdmin, 
       isLoading, 
-      login, 
       googleLogin, 
-      signup, 
+      googleRegister,
       logout 
     }}>
       {children}
