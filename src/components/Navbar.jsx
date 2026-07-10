@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import './Navbar.css';
 
 export default function Navbar() {
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout, deleteAccount } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -48,6 +48,17 @@ export default function Navbar() {
             <button onClick={logout} className="btn-secondary navbar-btn navbar-btn-logout">
               <RiLogoutBoxRLine size={16} />
               Logout
+            </button>
+            <button 
+              onClick={() => {
+                if(window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                  deleteAccount();
+                }
+              }} 
+              className="btn-secondary navbar-btn navbar-btn-logout"
+              style={{ color: '#ff6b6b', borderColor: 'rgba(255, 107, 107, 0.3)' }}
+            >
+              Delete Account
             </button>
           </>
         ) : (

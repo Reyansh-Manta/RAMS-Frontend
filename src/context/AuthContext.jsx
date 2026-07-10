@@ -86,6 +86,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      await apiClient.delete('/auth/account');
+    } catch (e) {
+      console.error('Error deleting account:', e);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('rams_access_token');
+      localStorage.removeItem('rams_refresh_token');
+      localStorage.removeItem('rams_user');
+    }
+  };
+
   const isAdmin = user?.role === 'admin';
 
   return (
@@ -96,7 +110,8 @@ export function AuthProvider({ children }) {
       isLoading, 
       googleLogin, 
       googleRegister,
-      logout 
+      logout,
+      deleteAccount
     }}>
       {children}
     </AuthContext.Provider>
