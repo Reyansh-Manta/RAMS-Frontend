@@ -74,7 +74,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post('/auth/logout', {}, { timeout: 2000 });
     } catch (e) {
       console.error('Error logging out from backend:', e);
     } finally {
@@ -83,12 +83,13 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('rams_access_token');
       localStorage.removeItem('rams_refresh_token');
       localStorage.removeItem('rams_user');
+      window.location.href = '/login';
     }
   };
 
   const deleteAccount = async () => {
     try {
-      await apiClient.delete('/auth/account');
+      await apiClient.delete('/auth/account', { timeout: 2000 });
     } catch (e) {
       console.error('Error deleting account:', e);
     } finally {
@@ -97,6 +98,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('rams_access_token');
       localStorage.removeItem('rams_refresh_token');
       localStorage.removeItem('rams_user');
+      window.location.href = '/login';
     }
   };
 
