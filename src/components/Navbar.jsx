@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import './Navbar.css';
 
 export default function Navbar() {
-  const { isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout, deleteAccount } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -31,21 +31,40 @@ export default function Navbar() {
           {theme === 'light' ? <RiMoonLine size={20} /> : <RiSunLine size={20} />}
         </button>
 
-        {isAdmin && isAdminRoute ? (
+        {isAuthenticated ? (
           <>
-            <Link to="/" className="btn-secondary navbar-btn">
-              <RiRobot2Fill size={16} />
-              Chat
-            </Link>
+            {isAdmin && !isAdminRoute && (
+              <Link to="/admin/dashboard" className="btn-secondary navbar-btn">
+                <RiShieldUserLine size={16} />
+                Dashboard
+              </Link>
+            )}
+            {isAdminRoute && (
+              <Link to="/" className="btn-secondary navbar-btn">
+                <RiRobot2Fill size={16} />
+                Chat
+              </Link>
+            )}
             <button onClick={logout} className="btn-secondary navbar-btn navbar-btn-logout">
               <RiLogoutBoxRLine size={16} />
               Logout
             </button>
+            <button 
+              onClick={() => {
+                if(window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                  deleteAccount();
+                }
+              }} 
+              className="btn-secondary navbar-btn navbar-btn-logout"
+              style={{ color: '#ff6b6b', borderColor: 'rgba(255, 107, 107, 0.3)' }}
+            >
+              Delete Account
+            </button>
           </>
         ) : (
-          <Link to="/admin" className="navbar-admin-link">
+          <Link to="/login" className="navbar-admin-link">
             <RiShieldUserLine size={18} />
-            <span>Admin</span>
+            <span>Sign In</span>
           </Link>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react';
+import apiClient from '../apiClient';
 
 const ChatContext = createContext(null);
 
@@ -94,14 +95,22 @@ export function ChatProvider({ children }) {
     conv.messages = newMessages;
     saveConversations(currentConvs);
 
-    // Simulate bot typing
+    // API call to the backend
     setIsTyping(true);
-    await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 1500));
+    let botContent = "Sorry, I couldn't connect to the backend.";
+    
+    try {
+      const response = await apiClient.post('/ask', { query: text });
+      botContent = response.data.answer || "No answer provided.";
+    } catch (error) {
+      console.error("API error:", error);
+      botContent = error.response?.data?.detail || "Error connecting to the backend API.";
+    }
 
     const botMsg = {
       id: (Date.now() + 1).toString(),
       role: 'bot',
-      content: BOT_RESPONSES[Math.floor(Math.random() * BOT_RESPONSES.length)],
+      content: botContent,
       timestamp: new Date().toISOString(),
     };
 
