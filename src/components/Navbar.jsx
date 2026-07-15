@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { RiRobot2Fill, RiShieldUserLine, RiLogoutBoxRLine, RiSunLine, RiMoonLine } from 'react-icons/ri';
+import { RiRobot2Fill, RiShieldUserLine, RiLogoutBoxRLine, RiSunLine, RiMoonLine, RiDatabase2Line } from 'react-icons/ri';
 import { motion } from 'framer-motion';
 import './Navbar.css';
 
@@ -40,10 +40,20 @@ export default function Navbar() {
               </Link>
             )}
             {isAdminRoute && (
-              <Link to="/" className="btn-secondary navbar-btn">
-                <RiRobot2Fill size={16} />
-                Chat
-              </Link>
+              <>
+                <Link to="/admin/dashboard" className="btn-secondary navbar-btn">
+                  <RiDatabase2Line size={16} />
+                  KB
+                </Link>
+                <Link to="/admin/users" className="btn-secondary navbar-btn">
+                  <RiShieldUserLine size={16} />
+                  Users
+                </Link>
+                <Link to="/" className="btn-secondary navbar-btn">
+                  <RiRobot2Fill size={16} />
+                  Chat
+                </Link>
+              </>
             )}
             <button onClick={logout} className="btn-secondary navbar-btn navbar-btn-logout">
               <RiLogoutBoxRLine size={16} />

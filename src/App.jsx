@@ -6,6 +6,7 @@ import ChatPage from './pages/ChatPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
@@ -22,6 +23,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/admin" element={<Navigate to="/login" replace />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
             </Routes>
           </ChatProvider>
         </AuthProvider>
