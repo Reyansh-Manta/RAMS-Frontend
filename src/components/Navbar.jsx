@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { RiRobot2Fill, RiShieldUserLine, RiLogoutBoxRLine, RiSunLine, RiMoonLine, RiDatabase2Line } from 'react-icons/ri';
+import { RiRobot2Fill, RiShieldUserLine, RiLogoutBoxRLine, RiSunLine, RiMoonLine, RiDatabase2Line, RiBarChartBoxLine } from 'react-icons/ri';
 import { motion } from 'framer-motion';
 import './Navbar.css';
 
@@ -44,6 +44,10 @@ export default function Navbar() {
                 <Link to="/admin/dashboard" className="btn-secondary navbar-btn">
                   <RiDatabase2Line size={16} />
                   KB
+                </Link>
+                <Link to="/admin/stats" className="btn-secondary navbar-btn">
+                  <RiBarChartBoxLine size={16} />
+                  Stats
                 </Link>
                 <Link to="/admin/users" className="btn-secondary navbar-btn">
                   <RiShieldUserLine size={16} />
