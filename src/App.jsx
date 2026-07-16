@@ -10,6 +10,8 @@ import AdminUsers from './pages/AdminUsers';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
+import FAQ from './pages/FAQ';
+
 function App() {
   return (
     <ThemeProvider>
@@ -19,6 +21,7 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/" element={<ChatPage />} />
+              <Route path="/faq" element={<FAQ />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/admin" element={<Navigate to="/login" replace />} />
