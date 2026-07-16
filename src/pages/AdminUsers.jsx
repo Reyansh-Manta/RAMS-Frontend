@@ -17,6 +17,10 @@ export default function AdminUsers() {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [timeRemaining, setTimeRemaining] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -52,6 +56,39 @@ export default function AdminUsers() {
     }
   }, [isAdmin, isLoading, navigate, fetchUsers]);
 
+  useEffect(() => {
+    let interval;
+    if (isUnlocked) {
+      const token = sessionStorage.getItem('admin_pin_token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const expTime = payload.exp * 1000;
+          
+          const updateTimer = () => {
+            const now = Date.now();
+            const diff = expTime - now;
+            if (diff <= 0) {
+              setIsUnlocked(false);
+              setTimeRemaining(null);
+              sessionStorage.removeItem('admin_pin_token');
+              fetchUsers();
+            } else {
+              const minutes = Math.floor(diff / 60000);
+              const seconds = Math.floor((diff % 60000) / 1000);
+              setTimeRemaining(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+            }
+          };
+          updateTimer();
+          interval = setInterval(updateTimer, 1000);
+        } catch (e) {
+          console.error('Failed to parse token', e);
+        }
+      }
+    }
+    return () => clearInterval(interval);
+  }, [isUnlocked, fetchUsers]);
+
   const handleVerifyPin = async (e) => {
     e.preventDefault();
     setPinError('');
@@ -80,6 +117,34 @@ export default function AdminUsers() {
     }
   };
 
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const processedUsers = [...users]
+    .filter(u => {
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (u.full_name && u.full_name.toLowerCase().includes(query)) || 
+               (u.email && u.email.toLowerCase().includes(query));
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let aVal = a[sortConfig.key] || '';
+      let bVal = b[sortConfig.key] || '';
+      if (aVal === '***') aVal = ''; 
+      if (bVal === '***') bVal = ''; 
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
   if (isLoading) {
     return (
       <div className="admin-loading">
@@ -102,7 +167,7 @@ export default function AdminUsers() {
         <div>
           {isUnlocked ? (
             <div className="unlocked-badge">
-              <RiLockUnlockLine /> Unlocked (Expires in 10m)
+              <RiLockUnlockLine /> Unlocked ({timeRemaining ? `${timeRemaining} remaining` : 'Expires soon'})
             </div>
           ) : (
             <button 
@@ -116,6 +181,25 @@ export default function AdminUsers() {
         </div>
       </div>
 
+      <div className="admin-users-controls" style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+        <input 
+          type="text" 
+          placeholder="Search by name or email..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', flex: 1, background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+        />
+        <select 
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+        >
+          <option value="all">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </select>
+      </div>
+
       <div className="admin-users-table-container">
         {loadingUsers ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
@@ -125,16 +209,17 @@ export default function AdminUsers() {
           <table className="admin-users-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Profession</th>
-                <th>Level</th>
-                <th>Joined</th>
+                <th onClick={() => handleSort('full_name')} style={{cursor: 'pointer'}}>Name {sortConfig.key === 'full_name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th onClick={() => handleSort('email')} style={{cursor: 'pointer'}}>Email {sortConfig.key === 'email' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th onClick={() => handleSort('role')} style={{cursor: 'pointer'}}>Role {sortConfig.key === 'role' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th onClick={() => handleSort('profession')} style={{cursor: 'pointer'}}>Profession {sortConfig.key === 'profession' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th onClick={() => handleSort('degree')} style={{cursor: 'pointer'}}>Degree {sortConfig.key === 'degree' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th onClick={() => handleSort('level')} style={{cursor: 'pointer'}}>Level {sortConfig.key === 'level' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                <th onClick={() => handleSort('created_at')} style={{cursor: 'pointer'}}>Joined {sortConfig.key === 'created_at' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {processedUsers.map((user) => (
                 <tr key={user.id} onClick={handleRowClick}>
                   <td>{user.full_name}</td>
                   <td className={!isUnlocked && user.email.includes('***') ? 'masked-data' : ''}>
@@ -155,6 +240,9 @@ export default function AdminUsers() {
                   <td className={!isUnlocked && user.profession === '***' ? 'masked-data' : ''}>
                     {user.profession || (isUnlocked ? '-' : '***')}
                   </td>
+                  <td className={!isUnlocked && user.degree === '***' ? 'masked-data' : ''}>
+                    {user.degree || (isUnlocked ? '-' : '***')}
+                  </td>
                   <td className={!isUnlocked && user.level === '***' ? 'masked-data' : ''}>
                     {user.level || (isUnlocked ? '-' : '***')}
                   </td>
@@ -163,9 +251,9 @@ export default function AdminUsers() {
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
+              {processedUsers.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
                     No users found.
                   </td>
                 </tr>
