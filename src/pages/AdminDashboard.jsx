@@ -1,74 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../apiClient';
 import {
   RiFileList3Line, RiAddCircleLine, RiDeleteBinLine,
   RiLinkM, RiHashtag, RiTimeLine, RiFileTextLine,
-  RiDatabase2Line, RiUploadCloud2Line, RiCheckLine,
-  RiGroupLine, RiRadioButtonLine, RiCalendarCheckLine,
-  RiQuestionAnswerLine, RiBarChartBoxLine, RiUserAddLine,
-  RiPuzzle2Line
+  RiDatabase2Line, RiUploadCloud2Line, RiCheckLine
 } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AdminDashboard.css';
-
-// Animated counter hook
-function useAnimatedCount(target, duration = 800) {
-  const [count, setCount] = useState(0);
-  const prevTarget = useRef(0);
-
-  useEffect(() => {
-    if (target === prevTarget.current) return;
-    const start = prevTarget.current;
-    const diff = target - start;
-    if (diff === 0) return;
-    
-    const startTime = performance.now();
-    let rafId;
-    
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(start + diff * eased));
-      if (progress < 1) {
-        rafId = requestAnimationFrame(tick);
-      } else {
-        prevTarget.current = target;
-      }
-    };
-    
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [target, duration]);
-
-  return count;
-}
-
-// Individual stat card component
-function StatCard({ icon: Icon, value, label, colorClass, delay, isLive }) {
-  const animatedValue = useAnimatedCount(value);
-  
-  return (
-    <motion.div
-      className={`platform-stat glass-card ${colorClass}`}
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-    >
-      <div className={`platform-stat-icon ${colorClass}`}>
-        <Icon size={22} />
-        {isLive && <span className="live-pulse" />}
-      </div>
-      <div className="platform-stat-content">
-        <p className="platform-stat-value">{animatedValue.toLocaleString()}</p>
-        <p className="platform-stat-label">{label}</p>
-      </div>
-    </motion.div>
-  );
-}
 
 export default function AdminDashboard() {
   const { isAdmin, isLoading } = useAuth();
@@ -84,39 +24,11 @@ export default function AdminDashboard() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Platform stats state
-  const [stats, setStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const intervalRef = useRef(null);
-
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/admin', { replace: true });
     }
   }, [isAdmin, isLoading, navigate]);
-
-  // Fetch platform stats
-  const fetchStats = useCallback(async () => {
-    try {
-      const response = await apiClient.get('/admin/stats');
-      setStats(response.data);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    } finally {
-      setStatsLoading(false);
-    }
-  }, []);
-
-  // Initial fetch + auto-refresh every 30s
-  useEffect(() => {
-    if (isAdmin) {
-      fetchStats();
-      intervalRef.current = setInterval(fetchStats, 30000);
-      return () => clearInterval(intervalRef.current);
-    }
-  }, [isAdmin, fetchStats]);
 
   const saveDocuments = (docs) => {
     localStorage.setItem('rams_documents', JSON.stringify(docs));
@@ -149,8 +61,6 @@ export default function AdminDashboard() {
       setDocId('');
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
-      // Refresh stats after adding a document
-      fetchStats();
     } catch (error) {
       console.error('Failed to upload document:', error);
       alert('Failed to upload document. See console for details.');
@@ -164,23 +74,6 @@ export default function AdminDashboard() {
     saveDocuments(updated);
   };
 
-  // Time ago formatter
-  const getTimeAgo = (date) => {
-    if (!date) return '';
-    const seconds = Math.floor((new Date() - date) / 1000);
-    if (seconds < 10) return 'just now';
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}m ago`;
-  };
-
-  // Force re-render for "time ago" display
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 10000);
-    return () => clearInterval(timer);
-  }, []);
-
   if (isLoading) {
     return (
       <div className="admin-loading">
@@ -188,17 +81,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
-  const STAT_CARDS = [
-    { key: 'total_users', icon: RiGroupLine, label: 'Total Users', colorClass: 'stat-users' },
-    { key: 'active_now', icon: RiRadioButtonLine, label: 'Active Now', colorClass: 'stat-active', isLive: true },
-    { key: 'logins_today', icon: RiCalendarCheckLine, label: 'Logins Today', colorClass: 'stat-logins' },
-    { key: 'questions_today', icon: RiQuestionAnswerLine, label: 'Questions Today', colorClass: 'stat-questions' },
-    { key: 'total_questions', icon: RiBarChartBoxLine, label: 'Total Questions', colorClass: 'stat-total-q' },
-    { key: 'new_users_week', icon: RiUserAddLine, label: 'New This Week', colorClass: 'stat-new' },
-    { key: 'total_documents', icon: RiFileList3Line, label: 'Total Documents', colorClass: 'stat-docs' },
-    { key: 'total_chunks', icon: RiPuzzle2Line, label: 'Total Chunks', colorClass: 'stat-chunks' },
-  ];
 
   return (
     <div className="admin-dashboard">
@@ -218,58 +100,55 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
 
-        {/* Platform Statistics */}
-        <motion.div
-          className="platform-stats-section"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="platform-stats-header">
-            <h2 className="platform-stats-title">
-              <RiBarChartBoxLine size={20} />
-              Platform Statistics
-            </h2>
-            {lastUpdated && (
-              <span className="platform-stats-updated">
-                Updated {getTimeAgo(lastUpdated)}
-              </span>
-            )}
-          </div>
-
-          <div className="platform-stats-grid">
-            {statsLoading ? (
-              // Loading skeletons
-              Array.from({ length: 8 }).map((_, i) => (
-                <motion.div
-                  key={`skeleton-${i}`}
-                  className="platform-stat glass-card skeleton"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <div className="skeleton-icon" />
-                  <div className="skeleton-content">
-                    <div className="skeleton-value" />
-                    <div className="skeleton-label" />
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              STAT_CARDS.map((card, i) => (
-                <StatCard
-                  key={card.key}
-                  icon={card.icon}
-                  value={stats?.[card.key] ?? 0}
-                  label={card.label}
-                  colorClass={card.colorClass}
-                  delay={0.1 + i * 0.05}
-                  isLive={card.isLive}
-                />
-              ))
-            )}
-          </div>
-        </motion.div>
+        {/* Quick Stats Bar */}
+        <div className="admin-stats-bar">
+          <motion.div
+            className="admin-stat glass-card"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="admin-stat-icon admin-stat-icon-total">
+              <RiFileList3Line size={22} />
+            </div>
+            <div>
+              <p className="admin-stat-value">{documents.length}</p>
+              <p className="admin-stat-label">Total Documents</p>
+            </div>
+          </motion.div>
+          <motion.div
+            className="admin-stat glass-card"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="admin-stat-icon admin-stat-icon-active">
+              <RiCheckLine size={22} />
+            </div>
+            <div>
+              <p className="admin-stat-value">{documents.filter(d => d.status === 'active').length}</p>
+              <p className="admin-stat-label">Active</p>
+            </div>
+          </motion.div>
+          <motion.div
+            className="admin-stat glass-card"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="admin-stat-icon admin-stat-icon-recent">
+              <RiTimeLine size={22} />
+            </div>
+            <div>
+              <p className="admin-stat-value">
+                {documents.length > 0
+                  ? new Date(documents[0].uploadedAt).toLocaleDateString()
+                  : '—'}
+              </p>
+              <p className="admin-stat-label">Last Upload</p>
+            </div>
+          </motion.div>
+        </div>
 
         {/* Upload Form */}
         <motion.div

@@ -33,6 +33,7 @@ export default function Register() {
     facultyType: '', 
     programme: '', 
     source: '',
+    degree: '',
   });
 
   useEffect(() => {
@@ -80,6 +81,7 @@ export default function Register() {
       source: formData.source,
       level: formData.level || null,
       faculty_type: formData.facultyType || null,
+      degree: formData.degree || null,
       interested_programme: formData.programme || null
     };
     
@@ -178,15 +180,24 @@ export default function Register() {
                   )}
                 </>
               ) : (
-                <div className="login-field">
-                  <label className="login-label">Current Profession</label>
-                  <select className="login-input-simple" value={formData.profession} onChange={e => setFormData({...formData, profession: e.target.value})}>
-                    <option value="">Select Profession</option>
-                    <option value="Currently pursuing a degree">Currently pursuing a degree</option>
-                    <option value="Student">Student</option>
-                    <option value="Working professional">Working professional</option>
-                  </select>
-                </div>
+                <>
+                  <div className="login-field">
+                    <label className="login-label">Current Profession</label>
+                    <select className="login-input-simple" value={formData.profession} onChange={e => setFormData({...formData, profession: e.target.value, degree: ''})}>
+                      <option value="">Select Profession</option>
+                      <option value="Currently pursuing a degree">Currently pursuing a degree</option>
+                      <option value="Student">Student</option>
+                      <option value="Working professional">Working professional</option>
+                    </select>
+                  </div>
+                  
+                  {(formData.profession === 'Student' || formData.profession === 'Currently pursuing a degree') && (
+                    <div className="login-field">
+                      <label className="login-label">Degree</label>
+                      <input className="login-input-simple" type="text" placeholder="e.g. B.Tech Computer Science" value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} />
+                    </div>
+                  )}
+                </>
               )}
               
               <button className="login-submit btn-primary" onClick={handleNext} style={{ marginTop: '15px' }}>Next Step</button>
