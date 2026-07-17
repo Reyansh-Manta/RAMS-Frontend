@@ -10,6 +10,7 @@ import AdminUsers from './pages/AdminUsers';
 import AdminStats from './pages/AdminStats';
 import { ThemeProvider } from './context/ThemeContext';
 import useHeartbeat from './hooks/useHeartbeat';
+import FAQ from './pages/FAQ';
 import './App.css';
 
 function HeartbeatProvider({ children }) {
@@ -27,6 +28,7 @@ function App() {
               <Navbar />
               <Routes>
                 <Route path="/" element={<ChatPage />} />
+                <Route path="/faq" element={<FAQ />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/admin" element={<Navigate to="/login" replace />} />
