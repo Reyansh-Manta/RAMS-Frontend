@@ -1,132 +1,215 @@
 .chat-input-wrapper {
-  padding: 16px 20px 12px;
-  border-top: 1px solid var(--color-border);
-  border-radius: 0;
-}
-
-.chat-input-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--color-bg-input);
-  border: 1px solid var(--color-border);
-  /* Fully rounded pill shaped container matching the mockups */
-  border-radius: var(--radius-xl);
-  padding: 6px 8px 6px 14px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  padding: 16px 24px;
+  background: transparent;
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
+  position: relative;
+  z-index: 10;
 }
 
-.chat-input-container:focus-within {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
+/* Quillbot-style spacious input card */
+.chat-input-spacious-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 8px;
+  transition: all var(--transition-base);
 }
 
-.chat-input-field {
-  flex: 1;
+.chat-input-spacious-card:focus-within {
+  border-color: var(--color-border-active);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--color-border-active);
+}
+
+/* borderless textarea inside card */
+.chat-input-textarea {
+  width: 100%;
   background: transparent;
-  color: var(--color-text-primary);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  resize: none;
-  padding: 8px 0;
-  max-height: 150px;
-  min-height: 24px;
   border: none;
   outline: none;
+  resize: none;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  padding: 4px 6px;
+  min-height: 52px;
 }
 
-.chat-input-field::placeholder {
+.chat-input-textarea::placeholder {
   color: var(--color-text-muted);
 }
 
-.chat-input-field:disabled {
+.chat-input-textarea:disabled {
   opacity: 0.5;
 }
 
-/* Action Buttons (Add, Mic) inside Pill Input */
-.chat-input-action-btn {
+/* Bottom Toolbar row */
+.chat-input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--color-border);
+  padding-top: 8px;
+  margin-top: 6px;
+}
+
+.chat-input-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-btn {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   color: var(--color-text-muted);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   transition: all var(--transition-fast);
   position: relative;
 }
 
-.chat-input-action-btn:hover {
-  background: rgba(148, 163, 184, 0.15);
+.toolbar-btn:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
   color: var(--color-text-primary);
 }
 
-/* Mic Active listening state */
-.chat-input-action-btn.listening {
-  color: #da1b60;
-  background: rgba(218, 27, 96, 0.1);
+.toolbar-btn.mic-btn.active {
+  background: rgba(239, 83, 80, 0.08);
+  border-color: rgba(239, 83, 80, 0.2);
 }
 
-.listening-pulse-ring {
+.mic-listening-pulse {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(218, 27, 96, 0.4);
-  animation: pulseListening 1.5s ease-out infinite;
+  border: 2px solid rgba(239, 83, 80, 0.4);
+  animation: listeningPulse 1.5s ease-out infinite;
   pointer-events: none;
 }
 
-@keyframes pulseListening {
+@keyframes listeningPulse {
   0% { transform: scale(0.95); opacity: 1; }
   100% { transform: scale(1.4); opacity: 0; }
 }
 
-.chat-send-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%; /* Rounded send button inside input */
+/* Tools Selector dropdown */
+.tools-selector-container {
+  position: relative;
+}
+
+.tools-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tools-trigger-btn:hover,
+.tools-trigger-btn.active {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-active);
+  color: var(--color-text-primary);
+}
+
+.tools-dropdown {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  width: 160px;
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+}
+
+.tools-dropdown .dropdown-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+}
+
+.tools-dropdown button {
+  width: 100%;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.tools-dropdown button:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+/* Right side circular submit button (Green accent from Quillbot) */
+.chat-submit-circular-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
   background: var(--color-bg-secondary);
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  transition: all var(--transition-base);
-  border: none;
   cursor: pointer;
+  transition: all var(--transition-base);
 }
 
-.chat-send-btn-active {
-  /* Vibrant magenta-purple matching the bubble gradient */
-  background: linear-gradient(135deg, #da1b60, #8b5cf6);
+.chat-submit-circular-btn.active {
+  background: #10b981; /* Premium Quillbot Green */
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(218, 27, 96, 0.25);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
 }
 
-.chat-send-btn-active:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(218, 27, 96, 0.35);
+.chat-submit-circular-btn.active:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
 }
 
-.chat-send-btn:disabled {
-  cursor: default;
+.chat-submit-circular-btn:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .chat-input-hint {
   text-align: center;
   margin-top: 8px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--color-text-muted);
 }
 
@@ -134,7 +217,7 @@
   display: inline-block;
   padding: 1px 5px;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -143,9 +226,8 @@
 
 @media (max-width: 640px) {
   .chat-input-wrapper {
-    padding: 12px;
+    padding: 12px 16px;
   }
-
   .chat-input-hint {
     display: none;
   }

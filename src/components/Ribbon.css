@@ -1,0 +1,196 @@
+.app-ribbon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  z-index: 1010;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(20px);
+}
+
+/* Brand Logo Container */
+.ribbon-brand {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.ribbon-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #da1b60, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(218, 27, 96, 0.25);
+  transition: all var(--transition-slow);
+}
+
+.ribbon-brand:hover .ribbon-logo {
+  transform: rotate(360deg) scale(1.05);
+  box-shadow: 0 4px 16px rgba(218, 27, 96, 0.4);
+}
+
+/* Nav Item Groups */
+.ribbon-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  width: 100%;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.ribbon-nav-item {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.ribbon-nav-item:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.ribbon-nav-item.active {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-hover);
+  border-color: var(--color-border-active);
+}
+
+/* Bottom Controls */
+.ribbon-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+}
+
+.ribbon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.ribbon-btn:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.ribbon-login-btn {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.ribbon-login-btn:hover {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent);
+}
+
+/* Tooltips */
+.ribbon-nav-tooltip {
+  position: absolute;
+  left: 78px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: var(--shadow-sm);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 1020;
+}
+
+.ribbon-nav-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent var(--color-accent) transparent transparent;
+}
+
+.ribbon-nav-item:hover .ribbon-nav-tooltip,
+.ribbon-btn:hover .ribbon-nav-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+@media (max-width: 768px) {
+  .app-ribbon {
+    flex-direction: row;
+    height: 52px;
+    width: 100%;
+    top: auto;
+    bottom: 0;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    padding: 0 16px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ribbon-brand {
+    margin-bottom: 0;
+  }
+
+  .ribbon-nav {
+    flex-direction: row;
+    flex: none;
+    gap: 8px;
+    padding-top: 0;
+    justify-content: center;
+  }
+
+  .ribbon-bottom {
+    flex-direction: row;
+    gap: 8px;
+    width: auto;
+  }
+
+  .ribbon-nav-tooltip {
+    display: none;
+  }
+}
