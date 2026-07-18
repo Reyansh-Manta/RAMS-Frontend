@@ -15,6 +15,16 @@
   transition: left var(--transition-base);
 }
 
+/* Offset when the conversation sidebar drawer is active and expanded */
+.chat-route .navbar-header-bar {
+  left: 308px; /* Ribbon width (68) + Sidebar width (240) */
+}
+
+/* Offset when the conversation sidebar drawer is collapsed */
+.chat-route.sidebar-collapsed .navbar-header-bar {
+  left: 68px;
+}
+
 .navbar-mobile-trigger {
   display: none;
   background: none;
@@ -38,10 +48,10 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-heading);
-  font-size: 0.9rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  letter-spacing: -0.2px;
+  letter-spacing: 0px;
 }
 
 .breadcrumb-sep {
@@ -51,8 +61,9 @@
 
 .breadcrumb-sub {
   color: var(--color-text-secondary);
-  font-weight: 500;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.58rem;
+  font-family: var(--font-heading);
 }
 
 .navbar-right {
