@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
-  const { isAdmin, isLoading } = useAuth();
+  const { isSuperAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [documents, setDocuments] = useState(() => {
@@ -25,10 +25,10 @@ export default function AdminDashboard() {
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      navigate('/admin', { replace: true });
+    if (!isLoading && !isSuperAdmin) {
+      navigate('/', { replace: true });
     }
-  }, [isAdmin, isLoading, navigate]);
+  }, [isSuperAdmin, isLoading, navigate]);
 
   const saveDocuments = (docs) => {
     localStorage.setItem('rams_documents', JSON.stringify(docs));

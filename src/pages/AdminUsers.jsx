@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +8,7 @@ import { RiShieldUserLine, RiLockPasswordLine, RiLockUnlockLine, RiCloseLine } f
 import './AdminUsers.css';
 
 export default function AdminUsers() {
-  const { isAdmin, isLoading } = useAuth();
+  const { isSuperAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [users, setUsers] = useState([]);
@@ -21,6 +22,7 @@ export default function AdminUsers() {
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
   const [roleFilter, setRoleFilter] = useState('all');
   const [timeRemaining, setTimeRemaining] = useState(null);
+  const [updatingUserId, setUpdatingUserId] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -48,13 +50,13 @@ export default function AdminUsers() {
 
   useEffect(() => {
     if (!isLoading) {
-      if (!isAdmin) {
-        navigate('/admin', { replace: true });
+      if (!isSuperAdmin) {
+        navigate('/', { replace: true });
       } else {
         fetchUsers();
       }
     }
-  }, [isAdmin, isLoading, navigate, fetchUsers]);
+  }, [isSuperAdmin, isLoading, navigate, fetchUsers]);
 
   useEffect(() => {
     let interval;
@@ -108,6 +110,28 @@ export default function AdminUsers() {
       setPinError(error.response?.data?.detail || 'Invalid PIN');
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleToggleRole = async (userId, currentRole) => {
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    if (!window.confirm(`Are you sure you want to make this user a standard ${newRole === 'admin' ? 'Admin' : 'User'}?`)) {
+      return;
+    }
+    
+    setUpdatingUserId(userId);
+    try {
+      await apiClient.put(`/admin/users/${userId}/role`, { role: newRole });
+      
+      // Update local state for immediate feedback
+      setUsers(prevUsers => 
+        prevUsers.map(u => u.id === userId ? { ...u, role: newRole } : u)
+      );
+    } catch (error) {
+      console.error('Failed to change user role:', error);
+      alert(error.response?.data?.detail || 'Failed to update user role');
+    } finally {
+      setUpdatingUserId(null);
     }
   };
 
@@ -195,6 +219,7 @@ export default function AdminUsers() {
           style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
         >
           <option value="all">All Roles</option>
+          <option value="super_admin">Super Admin</option>
           <option value="admin">Admin</option>
           <option value="user">User</option>
         </select>
@@ -216,6 +241,7 @@ export default function AdminUsers() {
                 <th onClick={() => handleSort('degree')} style={{cursor: 'pointer'}}>Degree {sortConfig.key === 'degree' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                 <th onClick={() => handleSort('level')} style={{cursor: 'pointer'}}>Level {sortConfig.key === 'level' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                 <th onClick={() => handleSort('created_at')} style={{cursor: 'pointer'}}>Joined {sortConfig.key === 'created_at' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                {isUnlocked && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -229,8 +255,8 @@ export default function AdminUsers() {
                     <span style={{ 
                       padding: '4px 8px', 
                       borderRadius: '12px', 
-                      background: user.role === 'admin' ? 'rgba(255, 171, 0, 0.1)' : 'rgba(0, 150, 255, 0.1)',
-                      color: user.role === 'admin' ? '#ffab00' : '#0096ff',
+                      background: user.role === 'super_admin' ? 'rgba(239, 68, 68, 0.1)' : (user.role === 'admin' ? 'rgba(255, 171, 0, 0.1)' : 'rgba(0, 150, 255, 0.1)'),
+                      color: user.role === 'super_admin' ? '#ef4444' : (user.role === 'admin' ? '#ffab00' : '#0096ff'),
                       fontSize: '12px',
                       fontWeight: 600
                     }}>
@@ -249,11 +275,36 @@ export default function AdminUsers() {
                   <td>
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
+                  {isUnlocked && (
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {user.role === 'super_admin' || user.email === 'rams.cb.0429@gmail.com' ? (
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Primary Super Admin
+                        </span>
+                      ) : (
+                        <button
+                          className={`btn-${user.role === 'admin' ? 'secondary' : 'primary'}`}
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '12px',
+                            borderRadius: '6px',
+                            height: 'auto',
+                            minHeight: '28px',
+                            lineHeight: 1
+                          }}
+                          disabled={updatingUserId === user.id}
+                          onClick={() => handleToggleRole(user.id, user.role)}
+                        >
+                          {updatingUserId === user.id ? 'Updating...' : (user.role === 'admin' ? 'Remove Admin' : 'Make Admin')}
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
               {processedUsers.length === 0 && (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '30px' }}>
+                  <td colSpan={isUnlocked ? "8" : "7"} style={{ textAlign: 'center', padding: '30px' }}>
                     No users found.
                   </td>
                 </tr>

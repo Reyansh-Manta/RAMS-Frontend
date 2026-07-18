@@ -102,13 +102,15 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const isAdmin = user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'super_admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
     <AuthContext.Provider value={{ 
       user, 
       isAuthenticated, 
       isAdmin, 
+      isSuperAdmin,
       isLoading, 
       googleLogin, 
       googleRegister,

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import './Navbar.css';
 
 export default function Navbar() {
-  const { isAuthenticated, isAdmin, logout, deleteAccount } = useAuth();
+  const { isAuthenticated, isAdmin, isSuperAdmin, logout, deleteAccount } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -33,7 +33,7 @@ export default function Navbar() {
 
         {isAuthenticated ? (
           <>
-            {isAdmin && !isAdminRoute && (
+            {isSuperAdmin && !isAdminRoute && (
               <Link to="/admin/dashboard" className="btn-secondary navbar-btn">
                 <RiShieldUserLine size={16} />
                 Dashboard
@@ -43,7 +43,7 @@ export default function Navbar() {
               <RiQuestionAnswerLine size={16} />
               FAQ
             </Link>
-            {isAdminRoute && (
+            {isAdminRoute && isSuperAdmin && (
               <>
                 <Link to="/admin/dashboard" className="btn-secondary navbar-btn">
                   <RiDatabase2Line size={16} />
