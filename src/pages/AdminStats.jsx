@@ -231,7 +231,7 @@ function DonutChart({ data, title }) {
 
 // ─── Main Page ───
 export default function AdminStats() {
-  const { isAdmin, isLoading } = useAuth();
+  const { isSuperAdmin, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState(null);
@@ -241,10 +241,10 @@ export default function AdminStats() {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      navigate('/admin', { replace: true });
+    if (!isLoading && !isSuperAdmin) {
+      navigate('/', { replace: true });
     }
-  }, [isAdmin, isLoading, navigate]);
+  }, [isSuperAdmin, isLoading, navigate]);
 
   const fetchStats = useCallback(async (manual = false) => {
     if (manual) setIsRefreshing(true);
@@ -261,12 +261,12 @@ export default function AdminStats() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) {
+    if (isSuperAdmin) {
       fetchStats();
       intervalRef.current = setInterval(fetchStats, 30000);
       return () => clearInterval(intervalRef.current);
     }
-  }, [isAdmin, fetchStats]);
+  }, [isSuperAdmin, fetchStats]);
 
   // Time ago formatter
   const getTimeAgo = (date) => {

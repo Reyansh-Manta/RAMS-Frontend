@@ -13,7 +13,7 @@ import {
 import './FAQ.css';
 
 export default function FAQ() {
-  const { isAdmin } = useAuth();
+  const { isSuperAdmin } = useAuth();
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState(null);
@@ -100,7 +100,7 @@ export default function FAQ() {
           <RiQuestionAnswerLine /> Frequently Asked Questions
         </h1>
         
-        {isAdmin && (
+        {isSuperAdmin && (
           <div className="faq-admin-controls">
             <button 
               className="btn-secondary" 
@@ -138,7 +138,7 @@ export default function FAQ() {
               >
                 <span className="faq-question-text">{faq.question}</span>
                 <div className="faq-item-actions">
-                  {isAdmin && (
+                  {isSuperAdmin && (
                     <button 
                       className="faq-delete-btn" 
                       onClick={(e) => handleDeleteFaq(e, faq._id)}
