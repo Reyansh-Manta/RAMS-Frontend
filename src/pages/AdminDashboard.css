@@ -1,11 +1,11 @@
 .admin-dashboard {
   min-height: 100vh;
-  padding-top: calc(var(--navbar-height) + 24px);
-  padding-bottom: 40px;
+  padding-top: calc(var(--navbar-height) + 40px);
+  padding-bottom: 60px;
 }
 
 .admin-dashboard-inner {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -18,9 +18,9 @@
 }
 
 .admin-loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--color-border);
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-border);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -28,15 +28,17 @@
 
 /* Header */
 .admin-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .admin-header-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 1.8rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -1px;
+  font-family: var(--font-heading);
 }
 
 .admin-header-icon {
@@ -45,8 +47,8 @@
 
 .admin-header-desc {
   font-size: 0.95rem;
-  color: var(--color-text-muted);
-  margin-top: 4px;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
 }
 
 /* Quick Stats Bar */
@@ -54,66 +56,90 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .admin-stat {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 20px;
+  gap: 16px;
+  padding: 22px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.admin-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-hover);
 }
 
 .admin-stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .admin-stat-icon-total {
-  background: rgba(124, 179, 66, 0.15);
   color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border-color: var(--color-border-active);
 }
 
 .admin-stat-icon-active {
-  background: rgba(102, 187, 106, 0.15);
   color: var(--color-success);
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .admin-stat-icon-recent {
-  background: rgba(66, 165, 245, 0.15);
   color: var(--color-info);
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .admin-stat-value {
   font-size: 1.4rem;
   font-weight: 700;
   font-family: var(--font-heading);
+  line-height: 1.1;
+  color: var(--color-text-primary);
 }
 
 .admin-stat-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
+  letter-spacing: 0.8px;
+  margin-top: 4px;
+  font-weight: 600;
 }
 
-/* Upload */
+/* Upload Container */
 .admin-upload {
   padding: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-upload-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .admin-upload-header-icon {
@@ -122,7 +148,9 @@
 
 .admin-upload-title {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-family: var(--font-heading);
 }
 
 .admin-upload-desc {
@@ -134,7 +162,7 @@
 .admin-upload-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .admin-upload-fields {
@@ -146,23 +174,26 @@
 .admin-upload-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .admin-upload-label {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .admin-upload-btn {
   align-self: flex-start;
-  padding: 12px 28px;
+  padding: 10px 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  height: 38px;
 }
 
 .admin-upload-btn:disabled {
@@ -172,8 +203,8 @@
 }
 
 .admin-upload-spinner {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
@@ -186,8 +217,8 @@
   gap: 8px;
   margin-top: 12px;
   padding: 10px 14px;
-  background: rgba(102, 187, 106, 0.1);
-  border: 1px solid rgba(102, 187, 106, 0.3);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: var(--radius-md);
   color: var(--color-success);
   font-size: 0.85rem;
@@ -203,7 +234,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .admin-docs-title {
@@ -211,16 +242,19 @@
   align-items: center;
   gap: 8px;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-family: var(--font-heading);
 }
 
 .admin-docs-count {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
   padding: 4px 10px;
-  background: var(--color-accent-subtle);
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
+  font-weight: 600;
 }
 
 .admin-docs-empty {
@@ -228,14 +262,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 20px;
+  padding: 60px 20px;
   text-align: center;
   color: var(--color-text-muted);
-  gap: 8px;
+  gap: 10px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .admin-docs-empty-sub {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--color-text-muted);
   opacity: 0.7;
 }
@@ -251,11 +288,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  transition: border-color var(--transition-fast);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
 }
 
 .admin-doc-card:hover {
   border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-doc-info {
@@ -271,12 +312,12 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  background: var(--color-accent-subtle);
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  font-size: 0.78rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-text-secondary);
   font-family: var(--font-mono);
   white-space: nowrap;
 }
@@ -286,15 +327,19 @@
   align-items: center;
   gap: 6px;
   font-size: 0.88rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  transition: color var(--transition-fast);
 }
 
 .admin-doc-link:hover {
   color: var(--color-accent);
+  text-decoration: underline;
 }
 
 .admin-doc-date {
@@ -307,9 +352,9 @@
 }
 
 .admin-doc-delete {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: none;
   color: var(--color-text-muted);
   display: flex;
@@ -317,12 +362,13 @@
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   transition: all var(--transition-fast);
 }
 
 .admin-doc-delete:hover {
-  background: rgba(239, 83, 80, 0.15);
+  background: rgba(239, 83, 80, 0.08);
+  border-color: rgba(239, 83, 80, 0.2);
   color: var(--color-error);
 }
 
@@ -342,7 +388,7 @@
   .admin-doc-info {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 8px;
   }
 
   .admin-doc-date {
@@ -350,6 +396,6 @@
   }
 
   .admin-header-title {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
   }
 }

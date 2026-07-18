@@ -1,17 +1,17 @@
 .chat-page {
   display: flex;
   height: 100vh;
-  padding-top: var(--navbar-height);
+  background: transparent;
 }
 
 .chat-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: var(--sidebar-width);
+  margin-left: calc(var(--sidebar-width) + 40px);
+  padding-top: calc(var(--navbar-height) + 24px);
   min-width: 0;
   position: relative;
-  /* Make sure canvas background is visible through main container */
   background: transparent;
 }
 
@@ -178,10 +178,13 @@
 @media (max-width: 768px) {
   .chat-main {
     margin-left: 0;
+    padding-top: calc(var(--navbar-height) + 16px);
   }
 
   .chat-menu-btn {
     display: flex;
+    top: 72px; /* Adjust trigger to sit below floating navbar */
+    left: 16px;
   }
 
   .chat-welcome-title {
@@ -205,6 +208,6 @@
 
   .chat-messages {
     padding: 16px;
-    padding-top: 60px;
+    padding-top: 80px; /* Leave space for menu btn on mobile */
   }
 }
