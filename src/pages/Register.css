@@ -3,17 +3,28 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 20px;
+  padding: 40px 20px;
   position: relative;
   overflow: hidden;
+  background: transparent;
 }
 
 .register-card {
   width: 100%;
-  max-width: 450px;
-  padding: 36px;
+  max-width: 460px;
+  padding: 40px;
   position: relative;
   z-index: 1;
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  transition: border-color var(--transition-base);
+}
+
+.register-card:hover {
+  border-color: var(--color-border-hover);
 }
 
 .register-form {
@@ -24,19 +35,19 @@
 
 .login-input-simple {
   width: 100%;
-  padding: 12px 14px;
-  background: var(--color-surface);
+  padding: 10px 14px;
+  background: var(--color-bg-input);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  color: var(--color-text);
-  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
   transition: all var(--transition-fast);
+  outline: none;
 }
 
 .login-input-simple:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+  border-color: var(--color-border-active);
+  box-shadow: 0 0 0 2px var(--color-accent-glow);
 }
 
 .login-input-simple::placeholder {
