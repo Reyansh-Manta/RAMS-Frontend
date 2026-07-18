@@ -26,10 +26,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--color-text-primary);
-  letter-spacing: -1px;
   font-family: var(--font-heading);
 }
 

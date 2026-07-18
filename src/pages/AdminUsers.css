@@ -18,11 +18,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--color-text-primary);
   font-family: var(--font-heading);
-  letter-spacing: -1px;
 }
 
 .admin-users-desc {
