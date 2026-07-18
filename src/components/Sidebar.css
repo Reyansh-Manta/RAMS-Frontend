@@ -22,10 +22,9 @@
 
 .sidebar.collapsed {
   width: 0;
-  opacity: 0;
-  pointer-events: none;
+  background: transparent;
   border-color: transparent;
-  transform: translateX(-20px);
+  box-shadow: none;
 }
 
 .sidebar:hover {
