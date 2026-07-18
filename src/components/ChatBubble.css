@@ -107,6 +107,14 @@
   position: absolute;
   bottom: 8px;
   left: 14px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--transition-base), transform var(--transition-base);
+}
+
+.chat-bubble-text-wrapper:hover .chat-bubble-actions {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .bubble-action-btn {
@@ -114,24 +122,27 @@
   border: none;
   cursor: pointer;
   color: var(--color-text-muted);
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
   position: relative;
+  border: 1px solid transparent;
 }
 
 .bubble-action-btn:hover {
-  background: rgba(148, 163, 184, 0.15);
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
   color: var(--color-text-primary);
 }
 
 .bubble-action-btn.active {
   color: var(--color-accent);
   background: var(--color-accent-subtle);
+  border-color: var(--color-border-active);
 }
 
 .speech-playing svg {
