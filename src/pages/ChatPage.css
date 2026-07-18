@@ -11,6 +11,8 @@
   margin-left: var(--sidebar-width);
   min-width: 0;
   position: relative;
+  /* Make sure canvas background is visible through main container */
+  background: transparent;
 }
 
 .chat-menu-btn {
@@ -45,7 +47,7 @@
   margin: 0 auto;
 }
 
-/* Welcome */
+/* Welcome Screen */
 .chat-welcome {
   display: flex;
   flex-direction: column;
@@ -54,94 +56,123 @@
   text-align: center;
   flex: 1;
   padding: 40px 20px;
-  max-width: 700px;
+  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
 }
 
-.chat-welcome-icon {
-  width: 90px;
-  height: 90px;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, var(--color-accent), var(--color-info), var(--color-accent-hover));
-  background-size: 200% 200%;
-  animation: gradientShift 4s ease infinite, float 3s ease-in-out infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-inverse);
-  box-shadow: var(--shadow-lg), 0 0 40px var(--color-accent-glow);
-  margin-bottom: 28px;
-}
-
+/* Large clean typography matching phone mockup */
 .chat-welcome-title {
-  font-size: 2.4rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-  letter-spacing: -1px;
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+  font-family: var(--font-heading);
 }
 
 .chat-welcome-subtitle {
   font-size: 1.05rem;
   color: var(--color-text-secondary);
   line-height: 1.6;
-  max-width: 480px;
-  margin-bottom: 40px;
+  max-width: 460px;
+  margin-bottom: 44px;
 }
 
-/* Suggestions */
+/* Suggestions Cards - 2x2 Grid */
 .chat-suggestions {
   width: 100%;
-  max-width: 550px;
+  max-width: 680px;
+  text-align: left;
 }
 
 .chat-suggestions-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--color-text-muted);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
+  letter-spacing: 1.2px;
+  margin-bottom: 16px;
+  padding-left: 4px;
 }
 
 .chat-suggestions-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
-.chat-suggestion-btn {
+/* Rounded prompt card mimicking Image 1 design */
+.chat-suggestion-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  padding: 22px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  min-height: 140px;
+  cursor: pointer;
+  transition: all var(--transition-slow);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-suggestion-card:hover {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.suggestion-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suggestion-card-category {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.suggestion-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.suggestion-card-arrow-wrap {
+  align-self: flex-end;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px 16px;
-  background: var(--color-bg-card);
+  justify-content: center;
   color: var(--color-text-secondary);
-  font-size: 0.88rem;
-  text-align: left;
-  cursor: pointer;
   transition: all var(--transition-base);
+  margin-top: 10px;
 }
 
-.chat-suggestion-btn:hover {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  background: var(--color-accent-subtle);
+.chat-suggestion-card:hover .suggestion-card-arrow-wrap {
+  background: var(--color-accent);
+  color: #ffffff;
+  transform: rotate(45deg);
 }
 
 .chat-suggestion-arrow {
-  flex-shrink: 0;
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: all var(--transition-fast);
-}
-
-.chat-suggestion-btn:hover .chat-suggestion-arrow {
-  opacity: 1;
-  transform: translateX(0);
+  transition: transform var(--transition-fast);
 }
 
 @media (max-width: 768px) {
@@ -154,15 +185,22 @@
   }
 
   .chat-welcome-title {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
   }
 
   .chat-welcome-subtitle {
     font-size: 0.95rem;
+    margin-bottom: 32px;
   }
 
   .chat-suggestions-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chat-suggestion-card {
+    min-height: 110px;
+    padding: 16px;
   }
 
   .chat-messages {

@@ -1,5 +1,10 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { RiRobot2Fill, RiUser3Fill } from 'react-icons/ri';
+import {
+  RiRobot2Fill, RiUser3Fill, RiFileCopyLine,
+  RiVolumeUpLine, RiThumbUpLine, RiThumbUpFill,
+  RiRefreshLine
+} from 'react-icons/ri';
 import './ChatBubble.css';
 
 export default function ChatBubble({ message }) {
@@ -8,6 +13,40 @@ export default function ChatBubble({ message }) {
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  // Action states for premium UX
+  const [liked, setLiked] = useState(false);
+  const [isPlayingSpeech, setIsPlayingSpeech] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSpeech = () => {
+    if ('speechSynthesis' in window) {
+      if (isPlayingSpeech) {
+        window.speechSynthesis.cancel();
+        setIsPlayingSpeech(false);
+      } else {
+        // Strip out markdown formatting before text-to-speech
+        const cleanText = message.content
+          .replace(/[#*`_-]/g, '')
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // links
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        utterance.onend = () => setIsPlayingSpeech(false);
+        utterance.onerror = () => setIsPlayingSpeech(false);
+        
+        setIsPlayingSpeech(true);
+        window.speechSynthesis.speak(utterance);
+      }
+    } else {
+      alert('Speech synthesis not supported in this browser.');
+    }
+  };
 
   return (
     <motion.div
@@ -24,7 +63,45 @@ export default function ChatBubble({ message }) {
           <span className="chat-bubble-name">{isBot ? 'RAMS AI' : 'You'}</span>
           <span className="chat-bubble-time">{time}</span>
         </div>
-        <p className="chat-bubble-text">{message.content}</p>
+        <div className="chat-bubble-text-wrapper">
+          <p className="chat-bubble-text">{message.content}</p>
+          
+          {isBot && (
+            <div className="chat-bubble-actions">
+              <button 
+                onClick={handleCopy} 
+                className={`bubble-action-btn ${copied ? 'active' : ''}`}
+                title={copied ? "Copied!" : "Copy message"}
+              >
+                <RiFileCopyLine size={14} />
+                {copied && <span className="action-tooltip">Copied!</span>}
+              </button>
+              <button 
+                onClick={handleSpeech} 
+                className={`bubble-action-btn ${isPlayingSpeech ? 'active speech-playing' : ''}`}
+                title={isPlayingSpeech ? "Stop speaking" : "Speak response"}
+              >
+                <RiVolumeUpLine size={14} />
+              </button>
+              <button 
+                onClick={() => setLiked(!liked)} 
+                className={`bubble-action-btn ${liked ? 'active' : ''}`}
+                title="Like response"
+              >
+                {liked ? <RiThumbUpFill size={14} style={{color: '#f59e0b'}} /> : <RiThumbUpLine size={14} />}
+              </button>
+              <button 
+                onClick={() => {
+                  alert('Regenerating response simulation...');
+                }} 
+                className="bubble-action-btn"
+                title="Regenerate"
+              >
+                <RiRefreshLine size={14} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
