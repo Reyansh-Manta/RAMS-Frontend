@@ -10,6 +10,7 @@ import AdminUsers from './pages/AdminUsers';
 import AdminStats from './pages/AdminStats';
 import { ThemeProvider } from './context/ThemeContext';
 import useHeartbeat from './hooks/useHeartbeat';
+import DottedBackground from './components/DottedBackground';
 import FAQ from './pages/FAQ';
 import './App.css';
 
@@ -21,6 +22,7 @@ function HeartbeatProvider({ children }) {
 function App() {
   return (
     <ThemeProvider>
+      <DottedBackground />
       <BrowserRouter>
         <AuthProvider>
           <ChatProvider>
