@@ -1,28 +1,72 @@
 .navbar-header-bar {
   position: fixed;
   top: 0;
-  left: 68px; /* Offset to fit next to Left Ribbon */
+  left: 0; /* Always spans full width, does not move */
   right: 0;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  z-index: 1000;
+  padding: 0; /* Pad internal containers individually */
+  z-index: 1020; /* Sits on top of sidebars */
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg-glass);
   backdrop-filter: blur(20px);
-  transition: left var(--transition-base);
 }
 
-/* Offset when the conversation sidebar drawer is active and expanded */
-.chat-route .navbar-header-bar {
-  left: 308px; /* Ribbon width (68) + Sidebar width (240) */
+/* Unified Brand Logo column on the left (68px wide to match Ribbon) */
+.navbar-brand-group {
+  width: 68px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
-/* Offset when the conversation sidebar drawer is collapsed */
-.chat-route.sidebar-collapsed .navbar-header-bar {
-  left: 68px;
+.navbar-logo-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  gap: 2px;
+}
+
+.navbar-logo-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #a855f7, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.25);
+  transition: transform var(--transition-fast);
+}
+
+.navbar-logo-link:hover .navbar-logo-box {
+  transform: scale(1.08);
+}
+
+.navbar-brand-text {
+  font-family: var(--font-heading);
+  font-size: 0.44rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
+}
+
+/* Content area next to brand column */
+.navbar-left-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 20px;
+  min-width: 0;
 }
 
 .navbar-mobile-trigger {
@@ -36,6 +80,7 @@
   border-radius: 50%;
   align-items: center;
   justify-content: center;
+  transition: background-color var(--transition-fast);
 }
 
 .navbar-mobile-trigger:hover {
@@ -70,17 +115,16 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-right: 20px;
 }
 
 .navbar-role-tag {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--color-accent-hover);
-  background: var(--color-accent-subtle);
-  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
   border: 1px solid var(--color-border);
 }
 
@@ -88,33 +132,31 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
   background: var(--color-accent);
   color: var(--color-text-inverse);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid transparent;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast);
 }
 
 .navbar-auth-btn:hover {
   background: var(--color-accent-hover);
-  box-shadow: var(--shadow-sm);
 }
 
 .navbar-menu-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
@@ -124,17 +166,15 @@
 }
 
 @media (max-width: 768px) {
-  .navbar-header-bar {
-    left: 0;
-    height: 52px;
-    padding: 0 16px;
-  }
-
   .navbar-mobile-trigger {
     display: flex;
   }
-
-  .navbar-breadcrumb {
-    font-size: 0.85rem;
+  
+  .navbar-brand-group {
+    display: none; /* Hide brand column on mobile to save space */
+  }
+  
+  .navbar-left-content {
+    padding-left: 12px;
   }
 }

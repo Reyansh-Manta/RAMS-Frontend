@@ -1,7 +1,7 @@
 .sidebar {
   position: fixed;
-  /* Float flush next to the Far-Left Ribbon */
-  top: 0;
+  /* Float flush next to the Far-Left Ribbon below unified Navbar */
+  top: 50px;
   left: 68px; /* Exact ribbon width */
   bottom: 0;
   width: 240px;
@@ -254,7 +254,7 @@
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
-    top: 0;
+    top: 50px;
     left: 0;
     bottom: 52px; /* leave space for bottom ribbon tab */
     width: 260px;

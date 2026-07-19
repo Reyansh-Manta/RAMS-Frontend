@@ -31,10 +31,14 @@ export default function AdminUsers() {
       const headers = token ? { 'X-Pin-Token': token } : {};
       
       const response = await apiClient.get('/admin/users', { headers });
-      setUsers(response.data);
+      const normalizedUsers = response.data.map(u => ({
+        ...u,
+        id: u.id || u._id
+      }));
+      setUsers(normalizedUsers);
       
       // If we got real data (no *** in email), consider it unlocked
-      const hasMaskedData = response.data.some(u => u.email && u.email.includes('***'));
+      const hasMaskedData = normalizedUsers.some(u => u.email && u.email.includes('***'));
       setIsUnlocked(!hasMaskedData && token !== null);
       
       // If token is invalid/expired, backend returns masked data, so clear token
@@ -177,6 +181,13 @@ export default function AdminUsers() {
     );
   }
 
+  const handleLockDetails = () => {
+    sessionStorage.removeItem('admin_pin_token');
+    setIsUnlocked(false);
+    setTimeRemaining(null);
+    fetchUsers();
+  };
+
   return (
     <div className="admin-users-container">
       <div className="admin-users-header">
@@ -190,9 +201,25 @@ export default function AdminUsers() {
         
         <div>
           {isUnlocked ? (
-            <div className="unlocked-badge">
-              <RiLockUnlockLine /> Unlocked ({timeRemaining ? `${timeRemaining} remaining` : 'Expires soon'})
-            </div>
+            <button 
+              className="unlocked-badge clickable" 
+              onClick={handleLockDetails}
+              title="Click to lock details immediately"
+              style={{ 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                background: 'rgba(16, 185, 129, 0.08)',
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-pill)',
+                color: 'var(--color-success)',
+                fontWeight: 600
+              }}
+            >
+              <RiLockUnlockLine /> Unlocked ({timeRemaining ? `${timeRemaining} remaining` : 'Expires soon'}) 🔒 Lock
+            </button>
           ) : (
             <button 
               className="btn-primary" 
