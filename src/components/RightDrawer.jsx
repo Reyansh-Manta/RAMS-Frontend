@@ -1,13 +1,46 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   RiCloseLine, RiImageLine, RiVideoLine, RiMusic2Line,
   RiFileList2Line, RiMoneyDollarCircleLine, RiBookOpenLine,
-  RiShieldCheckLine, RiLogoutBoxRLine, RiDeleteBin7Line
+  RiShieldCheckLine, RiLogoutBoxRLine, RiDeleteBin7Line,
+  RiToggleLine, RiToggleFill, RiVolumeUpLine, RiSettings3Line,
+  RiHandCoinLine
 } from 'react-icons/ri';
 import './RightDrawer.css';
 
 export default function RightDrawer({ isOpen, onClose }) {
   const { logout, deleteAccount } = useAuth();
+
+  // Local state for UI preference toggles
+  const [dottedBg, setDottedBg] = useState(true);
+  const [dottedSound, setDottedSound] = useState(true);
+  const [dottedHaptic, setDottedHaptic] = useState(true);
+
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    setDottedBg(localStorage.getItem('rams_dotted_bg') !== 'false');
+    setDottedSound(localStorage.getItem('rams_dotted_sound') !== 'false');
+    setDottedHaptic(localStorage.getItem('rams_dotted_haptic') !== 'false');
+  }, [isOpen]);
+
+  const toggleBg = () => {
+    const val = !dottedBg;
+    setDottedBg(val);
+    localStorage.setItem('rams_dotted_bg', val ? 'true' : 'false');
+  };
+
+  const toggleSound = () => {
+    const val = !dottedSound;
+    setDottedSound(val);
+    localStorage.setItem('rams_dotted_sound', val ? 'true' : 'false');
+  };
+
+  const toggleHaptic = () => {
+    const val = !dottedHaptic;
+    setDottedHaptic(val);
+    localStorage.setItem('rams_dotted_haptic', val ? 'true' : 'false');
+  };
 
   const handleAction = (msg) => {
     alert(msg);
@@ -34,6 +67,41 @@ export default function RightDrawer({ isOpen, onClose }) {
         </div>
 
         <div className="drawer-content">
+          {/* INTERFACE SETTINGS SECTION */}
+          <div className="drawer-section">
+            <p className="drawer-section-label">Interface Settings</p>
+            
+            <button className="drawer-item toggle-item" onClick={toggleBg}>
+              <RiSettings3Line size={18} />
+              <span className="toggle-text">Dotted Background</span>
+              {dottedBg ? (
+                <RiToggleFill size={24} style={{ color: '#10b981' }} />
+              ) : (
+                <RiToggleLine size={24} style={{ color: 'var(--color-text-muted)' }} />
+              )}
+            </button>
+
+            <button className="drawer-item toggle-item" onClick={toggleSound}>
+              <RiVolumeUpLine size={18} />
+              <span className="toggle-text">Sound Effects</span>
+              {dottedSound ? (
+                <RiToggleFill size={24} style={{ color: '#10b981' }} />
+              ) : (
+                <RiToggleLine size={24} style={{ color: 'var(--color-text-muted)' }} />
+              )}
+            </button>
+
+            <button className="drawer-item toggle-item" onClick={toggleHaptic}>
+              <RiHandCoinLine size={18} />
+              <span className="toggle-text">Haptic Feedback</span>
+              {dottedHaptic ? (
+                <RiToggleFill size={24} style={{ color: '#10b981' }} />
+              ) : (
+                <RiToggleLine size={24} style={{ color: 'var(--color-text-muted)' }} />
+              )}
+            </button>
+          </div>
+
           <div className="drawer-section">
             <p className="drawer-section-label">AI Capabilities</p>
             

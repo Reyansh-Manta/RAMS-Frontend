@@ -93,6 +93,14 @@
   width: 100%;
 }
 
+.drawer-item.toggle-item {
+  justify-content: space-between;
+}
+
+.toggle-text {
+  flex: 1;
+}
+
 .drawer-item:hover {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);

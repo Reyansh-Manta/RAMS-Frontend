@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ChatProvider } from './context/ChatContext';
-import Navbar from './components/Navbar';
+import useHeartbeat from './hooks/useHeartbeat';
+import DottedBackground from './components/DottedBackground';
 import Ribbon from './components/Ribbon';
-import RightDrawer from './components/RightDrawer';
 import Sidebar from './components/Sidebar';
+import RightDrawer from './components/RightDrawer';
+import Navbar from './components/Navbar';
 import ChatPage from './pages/ChatPage';
+import FAQ from './pages/FAQ';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 import AdminStats from './pages/AdminStats';
-import { ThemeProvider } from './context/ThemeContext';
-import useHeartbeat from './hooks/useHeartbeat';
-import DottedBackground from './components/DottedBackground';
-import FAQ from './pages/FAQ';
 import './App.css';
 
 function HeartbeatProvider({ children }) {
@@ -27,12 +27,21 @@ function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
+  const [waveTrigger, setWaveTrigger] = useState(0);
   const location = useLocation();
 
   const isChatRoute = location.pathname === '/';
 
+  const handleToggleCollapse = () => {
+    setSidebarCollapsed(prev => !prev);
+    setWaveTrigger(prev => prev + 1);
+  };
+
   return (
     <div className={`app-container ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${isChatRoute ? 'chat-route' : ''}`}>
+      {/* Background canvas moved inside layout to dynamically listen to wave actions */}
+      <DottedBackground waveTrigger={waveTrigger} />
+
       {/* Far-Left vertical ribbon */}
       <Ribbon onToggleRightDrawer={() => setRightDrawerOpen(!rightDrawerOpen)} />
 
@@ -42,7 +51,7 @@ function MainLayout({ children }) {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onToggleCollapse={handleToggleCollapse}
         />
       )}
 
@@ -66,7 +75,6 @@ function MainLayout({ children }) {
 function App() {
   return (
     <ThemeProvider>
-      <DottedBackground />
       <BrowserRouter>
         <AuthProvider>
           <ChatProvider>

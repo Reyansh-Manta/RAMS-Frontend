@@ -18,6 +18,12 @@ export default function ChatBubble({ message }) {
   const [liked, setLiked] = useState(false);
   const [isPlayingSpeech, setIsPlayingSpeech] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+
+  // Clean text by stripping markdown symbols so Speech API index aligns
+  const cleanText = message.content
+    .replace(/[#*`_-]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // links
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -30,15 +36,25 @@ export default function ChatBubble({ message }) {
       if (isPlayingSpeech) {
         window.speechSynthesis.cancel();
         setIsPlayingSpeech(false);
+        setCurrentCharIndex(0);
       } else {
-        // Strip out markdown formatting before text-to-speech
-        const cleanText = message.content
-          .replace(/[#*`_-]/g, '')
-          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // links
         const utterance = new SpeechSynthesisUtterance(cleanText);
         
-        utterance.onend = () => setIsPlayingSpeech(false);
-        utterance.onerror = () => setIsPlayingSpeech(false);
+        utterance.onboundary = (event) => {
+          if (event.name === 'word') {
+            setCurrentCharIndex(event.charIndex);
+          }
+        };
+
+        utterance.onend = () => {
+          setIsPlayingSpeech(false);
+          setCurrentCharIndex(0);
+        };
+
+        utterance.onerror = () => {
+          setIsPlayingSpeech(false);
+          setCurrentCharIndex(0);
+        };
         
         setIsPlayingSpeech(true);
         window.speechSynthesis.speak(utterance);
@@ -46,6 +62,29 @@ export default function ChatBubble({ message }) {
     } else {
       alert('Speech synthesis not supported in this browser.');
     }
+  };
+
+  // Render the text, highlighting up to the currently spoken word
+  const renderBubbleText = () => {
+    if (!isPlayingSpeech) {
+      return message.content;
+    }
+
+    // Find the end of the current word
+    let nextSpace = cleanText.indexOf(' ', currentCharIndex);
+    if (nextSpace === -1) nextSpace = cleanText.length;
+
+    const spoken = cleanText.substring(0, currentCharIndex);
+    const current = cleanText.substring(currentCharIndex, nextSpace);
+    const unspoken = cleanText.substring(nextSpace);
+
+    return (
+      <span className="karaoke-speech-container">
+        <span className="speech-spoken">{spoken}</span>
+        <span className="speech-current">{current}</span>
+        <span className="speech-unspoken">{unspoken}</span>
+      </span>
+    );
   };
 
   return (
@@ -64,7 +103,9 @@ export default function ChatBubble({ message }) {
           <span className="chat-bubble-time">{time}</span>
         </div>
         <div className="chat-bubble-text-wrapper">
-          <p className="chat-bubble-text">{message.content}</p>
+          <div className="chat-bubble-text">
+            {renderBubbleText()}
+          </div>
           
           {isBot && (
             <div className="chat-bubble-actions">
