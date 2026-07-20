@@ -1,10 +1,12 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RiShieldUserLine, RiLockPasswordLine, RiLockUnlockLine, RiCloseLine } from 'react-icons/ri';
+import {
+  RiShieldUserLine, RiLockPasswordLine, RiLockUnlockLine, RiCloseLine,
+  RiUserAddLine, RiDeleteBin6Line, RiUserFollowLine
+} from 'react-icons/ri';
 import './AdminUsers.css';
 
 export default function AdminUsers() {
@@ -18,11 +20,33 @@ export default function AdminUsers() {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Search, Sort, Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
   const [roleFilter, setRoleFilter] = useState('all');
-  const [timeRemaining, setTimeRemaining] = useState(null);
+
+  // User role/delete action state
   const [updatingUserId, setUpdatingUserId] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
+
+  // Modal to Create Admin/User directly
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [createForm, setCreateForm] = useState({
+    full_name: '',
+    email: '',
+    password: '',
+    role: 'admin',
+    profession: '',
+    degree: '',
+    level: ''
+  });
+
+  // Inactivity timeout configuration (reads VITE_ADMIN_UNLOCK_TIMEOUT_SECONDS or defaults to 600 seconds)
+  const timeoutSeconds = parseInt(import.meta.env.VITE_ADMIN_UNLOCK_TIMEOUT_SECONDS || '600', 10);
+  const inactivityTimerRef = useRef(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -41,7 +65,6 @@ export default function AdminUsers() {
       const hasMaskedData = normalizedUsers.some(u => u.email && u.email.includes('***'));
       setIsUnlocked(!hasMaskedData && token !== null);
       
-      // If token is invalid/expired, backend returns masked data, so clear token
       if (token && hasMaskedData) {
         sessionStorage.removeItem('admin_pin_token');
       }
@@ -52,6 +75,39 @@ export default function AdminUsers() {
     }
   }, []);
 
+  const handleLockDetails = useCallback(() => {
+    sessionStorage.removeItem('admin_pin_token');
+    setIsUnlocked(false);
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Reset inactivity timer on cursor movement or keyboard activity
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    if (isUnlocked) {
+      inactivityTimerRef.current = setTimeout(() => {
+        handleLockDetails();
+      }, timeoutSeconds * 1000);
+    }
+  }, [isUnlocked, timeoutSeconds, handleLockDetails]);
+
+  useEffect(() => {
+    if (isUnlocked) {
+      resetInactivityTimer();
+      const events = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'];
+      const handleActivity = () => resetInactivityTimer();
+      
+      events.forEach(event => window.addEventListener(event, handleActivity, { passive: true }));
+      return () => {
+        if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+        events.forEach(event => window.removeEventListener(event, handleActivity));
+      };
+    }
+  }, [isUnlocked, resetInactivityTimer]);
+
   useEffect(() => {
     if (!isLoading) {
       if (!isSuperAdmin) {
@@ -61,39 +117,6 @@ export default function AdminUsers() {
       }
     }
   }, [isSuperAdmin, isLoading, navigate, fetchUsers]);
-
-  useEffect(() => {
-    let interval;
-    if (isUnlocked) {
-      const token = sessionStorage.getItem('admin_pin_token');
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const expTime = payload.exp * 1000;
-          
-          const updateTimer = () => {
-            const now = Date.now();
-            const diff = expTime - now;
-            if (diff <= 0) {
-              setIsUnlocked(false);
-              setTimeRemaining(null);
-              sessionStorage.removeItem('admin_pin_token');
-              fetchUsers();
-            } else {
-              const minutes = Math.floor(diff / 60000);
-              const seconds = Math.floor((diff % 60000) / 1000);
-              setTimeRemaining(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
-            }
-          };
-          updateTimer();
-          interval = setInterval(updateTimer, 1000);
-        } catch (e) {
-          console.error('Failed to parse token', e);
-        }
-      }
-    }
-    return () => clearInterval(interval);
-  }, [isUnlocked, fetchUsers]);
 
   const handleVerifyPin = async (e) => {
     e.preventDefault();
@@ -108,7 +131,6 @@ export default function AdminUsers() {
       setShowPinModal(false);
       setPin('');
       
-      // Re-fetch users with the new token
       await fetchUsers();
     } catch (error) {
       setPinError(error.response?.data?.detail || 'Invalid PIN');
@@ -119,15 +141,17 @@ export default function AdminUsers() {
 
   const handleToggleRole = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
-    if (!window.confirm(`Are you sure you want to make this user a standard ${newRole === 'admin' ? 'Admin' : 'User'}?`)) {
+    if (!window.confirm(`Are you sure you want to change this account to standard ${newRole === 'admin' ? 'Admin' : 'User'}?`)) {
       return;
     }
     
     setUpdatingUserId(userId);
     try {
-      await apiClient.put(`/admin/users/${userId}/role`, { role: newRole });
+      const token = sessionStorage.getItem('admin_pin_token');
+      const headers = token ? { 'X-Pin-Token': token } : {};
       
-      // Update local state for immediate feedback
+      await apiClient.put(`/admin/users/${userId}/role`, { role: newRole }, { headers });
+      
       setUsers(prevUsers => 
         prevUsers.map(u => u.id === userId ? { ...u, role: newRole } : u)
       );
@@ -136,6 +160,54 @@ export default function AdminUsers() {
       alert(error.response?.data?.detail || 'Failed to update user role');
     } finally {
       setUpdatingUserId(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId, userEmail) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user (${userEmail})?`)) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+    try {
+      const token = sessionStorage.getItem('admin_pin_token');
+      const headers = token ? { 'X-Pin-Token': token } : {};
+
+      await apiClient.delete(`/admin/users/${userId}`, { headers });
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert(error.response?.data?.detail || 'Failed to delete user');
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    setCreateError('');
+    setCreateLoading(true);
+
+    try {
+      const token = sessionStorage.getItem('admin_pin_token');
+      const headers = token ? { 'X-Pin-Token': token } : {};
+
+      await apiClient.post('/admin/users', createForm, { headers });
+      setShowCreateModal(false);
+      setCreateForm({
+        full_name: '',
+        email: '',
+        password: '',
+        role: 'admin',
+        profession: '',
+        degree: '',
+        level: ''
+      });
+      await fetchUsers();
+    } catch (error) {
+      setCreateError(error.response?.data?.detail || 'Failed to create user');
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -181,25 +253,28 @@ export default function AdminUsers() {
     );
   }
 
-  const handleLockDetails = () => {
-    sessionStorage.removeItem('admin_pin_token');
-    setIsUnlocked(false);
-    setTimeRemaining(null);
-    fetchUsers();
-  };
-
   return (
     <div className="admin-users-container">
       <div className="admin-users-header">
         <div>
           <h1 className="admin-users-title">
             <RiShieldUserLine className="admin-header-icon" />
-            Registered Users
+            Registered Users & Admins
           </h1>
-          <p className="admin-users-desc">Manage and view details of all registered users.</p>
+          <p className="admin-users-desc">Manage system authorities, assign admin roles, and remove accounts.</p>
         </div>
         
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {isUnlocked && (
+            <button 
+              className="btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => setShowCreateModal(true)}
+            >
+              <RiUserAddLine /> Add Admin / User
+            </button>
+          )}
+
           {isUnlocked ? (
             <button 
               className="unlocked-badge clickable" 
@@ -212,13 +287,13 @@ export default function AdminUsers() {
                 gap: '6px',
                 border: '1px solid rgba(16, 185, 129, 0.2)',
                 background: 'rgba(16, 185, 129, 0.08)',
-                padding: '6px 14px',
+                padding: '8px 16px',
                 borderRadius: 'var(--radius-pill)',
                 color: 'var(--color-success)',
                 fontWeight: 600
               }}
             >
-              <RiLockUnlockLine /> Unlocked ({timeRemaining ? `${timeRemaining} remaining` : 'Expires soon'}) 🔒 Lock
+              <RiLockUnlockLine /> Unlocked 🔒 Lock
             </button>
           ) : (
             <button 
@@ -238,12 +313,12 @@ export default function AdminUsers() {
           placeholder="Search by name or email..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', flex: 1, background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border)', flex: 1, background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
         />
         <select 
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
         >
           <option value="all">All Roles</option>
           <option value="super_admin">Super Admin</option>
@@ -254,8 +329,8 @@ export default function AdminUsers() {
 
       <div className="admin-users-table-container">
         {loadingUsers ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            Loading users...
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            Loading users list...
           </div>
         ) : (
           <table className="admin-users-table">
@@ -280,10 +355,10 @@ export default function AdminUsers() {
                   </td>
                   <td>
                     <span style={{ 
-                      padding: '4px 8px', 
+                      padding: '4px 10px', 
                       borderRadius: '12px', 
-                      background: user.role === 'super_admin' ? 'rgba(239, 68, 68, 0.1)' : (user.role === 'admin' ? 'rgba(255, 171, 0, 0.1)' : 'rgba(0, 150, 255, 0.1)'),
-                      color: user.role === 'super_admin' ? '#ef4444' : (user.role === 'admin' ? '#ffab00' : '#0096ff'),
+                      background: user.role === 'super_admin' ? 'rgba(239, 68, 68, 0.12)' : (user.role === 'admin' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(59, 130, 246, 0.12)'),
+                      color: user.role === 'super_admin' ? '#ef4444' : (user.role === 'admin' ? '#f59e0b' : '#3b82f6'),
                       fontSize: '12px',
                       fontWeight: 600
                     }}>
@@ -300,30 +375,49 @@ export default function AdminUsers() {
                     {user.level || (isUnlocked ? '-' : '***')}
                   </td>
                   <td>
-                    {new Date(user.created_at).toLocaleDateString()}
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                   </td>
                   {isUnlocked && (
                     <td onClick={(e) => e.stopPropagation()}>
                       {user.role === 'super_admin' || user.email === 'rams.cb.0429@gmail.com' ? (
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
                           Primary Super Admin
                         </span>
                       ) : (
-                        <button
-                          className={`btn-${user.role === 'admin' ? 'secondary' : 'primary'}`}
-                          style={{
-                            padding: '4px 10px',
-                            fontSize: '12px',
-                            borderRadius: '6px',
-                            height: 'auto',
-                            minHeight: '28px',
-                            lineHeight: 1
-                          }}
-                          disabled={updatingUserId === user.id}
-                          onClick={() => handleToggleRole(user.id, user.role)}
-                        >
-                          {updatingUserId === user.id ? 'Updating...' : (user.role === 'admin' ? 'Remove Admin' : 'Make Admin')}
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button
+                            className={`btn-${user.role === 'admin' ? 'secondary' : 'primary'}`}
+                            style={{
+                              padding: '4px 10px',
+                              fontSize: '12px',
+                              borderRadius: '6px',
+                              height: 'auto',
+                              minHeight: '28px',
+                              lineHeight: 1
+                            }}
+                            disabled={updatingUserId === user.id}
+                            onClick={() => handleToggleRole(user.id, user.role)}
+                          >
+                            {updatingUserId === user.id ? 'Updating...' : (user.role === 'admin' ? 'Remove Admin' : 'Make Admin')}
+                          </button>
+
+                          <button
+                            style={{
+                              padding: '4px 8px',
+                              fontSize: '12px',
+                              borderRadius: '6px',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              color: '#ef4444',
+                              border: '1px solid rgba(239, 68, 68, 0.2)',
+                              cursor: 'pointer'
+                            }}
+                            disabled={deletingUserId === user.id}
+                            onClick={() => handleDeleteUser(user.id, user.email)}
+                            title="Delete user account"
+                          >
+                            {deletingUserId === user.id ? 'Deleting...' : <RiDeleteBin6Line size={14} />}
+                          </button>
+                        </div>
                       )}
                     </td>
                   )}
@@ -331,8 +425,8 @@ export default function AdminUsers() {
               ))}
               {processedUsers.length === 0 && (
                 <tr>
-                  <td colSpan={isUnlocked ? "8" : "7"} style={{ textAlign: 'center', padding: '30px' }}>
-                    No users found.
+                  <td colSpan={isUnlocked ? "8" : "7"} style={{ textAlign: 'center', padding: '30px', color: 'var(--color-text-muted)' }}>
+                    No users found matching your filters.
                   </td>
                 </tr>
               )}
@@ -340,6 +434,112 @@ export default function AdminUsers() {
           </table>
         )}
       </div>
+
+      {/* CREATE NEW ADMIN / USER MODAL */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            className="pin-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowCreateModal(false)}
+          >
+            <motion.div
+              className="pin-modal-card glass"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '440px', width: '100%' }}
+            >
+              <div className="pin-modal-header">
+                <h3>
+                  <RiUserCheckLine /> Add New Authority / User
+                </h3>
+                <button className="pin-modal-close" onClick={() => setShowCreateModal(false)}>
+                  <RiCloseLine size={20} />
+                </button>
+              </div>
+
+              {createError && (
+                <div style={{ color: '#ef4444', fontSize: '0.82rem', marginBottom: '12px', background: 'rgba(239,68,68,0.1)', padding: '8px 12px', borderRadius: '6px' }}>
+                  {createError}
+                </div>
+              )}
+
+              <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.full_name}
+                    onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
+                    placeholder="John Doe"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                    placeholder="user@example.com"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Password *</label>
+                  <input
+                    type="password"
+                    required
+                    value={createForm.password}
+                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                    placeholder="••••••••"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Authority Role *</label>
+                  <select
+                    value={createForm.role}
+                    onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }}
+                  >
+                    <option value="admin">Admin (System Authority)</option>
+                    <option value="user">User (Normal User)</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ flex: 1 }}
+                    disabled={createLoading}
+                  >
+                    {createLoading ? 'Creating...' : 'Create Account'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* PIN Verification Modal */}
       <AnimatePresence>
@@ -349,46 +549,58 @@ export default function AdminUsers() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={() => setShowPinModal(false)}
           >
             <motion.div 
-              className="pin-modal"
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="pin-modal-card glass"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <button 
-                className="pin-modal-close" 
-                onClick={() => {
-                  setShowPinModal(false);
-                  setPinError('');
-                  setPin('');
-                }}
-              >
-                <RiCloseLine size={24} />
-              </button>
-              
-              <h3><RiLockPasswordLine /> Security Verification</h3>
-              <p>Enter your super admin PIN to view full user details. The session will stay unlocked for 10 minutes.</p>
-              
+              <div className="pin-modal-header">
+                <h3>
+                  <RiLockPasswordLine /> Super Admin Authentication
+                </h3>
+                <button className="pin-modal-close" onClick={() => setShowPinModal(false)}>
+                  <RiCloseLine size={20} />
+                </button>
+              </div>
+
+              <p className="pin-modal-desc">
+                Protected Data Layer: Enter your 4-digit Master Security PIN to view email addresses and admin authorities.
+              </p>
+
               <form onSubmit={handleVerifyPin}>
                 <div className="pin-input-group">
                   <input
                     type="password"
-                    placeholder="Enter Security PIN"
+                    maxLength={6}
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
+                    placeholder="Enter PIN..."
                     autoFocus
                   />
-                  {pinError && <div className="pin-error">{pinError}</div>}
                 </div>
-                
-                <button 
-                  type="submit" 
-                  className="pin-submit-btn"
-                  disabled={isVerifying || !pin}
-                >
-                  {isVerifying ? 'Verifying...' : 'Unlock Data'}
-                </button>
+
+                {pinError && <p className="pin-error-msg">{pinError}</p>}
+
+                <div className="pin-modal-actions">
+                  <button 
+                    type="button" 
+                    className="btn-secondary" 
+                    onClick={() => setShowPinModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn-primary"
+                    disabled={isVerifying || !pin}
+                  >
+                    {isVerifying ? 'Verifying...' : 'Unlock Data'}
+                  </button>
+                </div>
               </form>
             </motion.div>
           </motion.div>

@@ -101,6 +101,32 @@
   flex: 1;
 }
 
+.drawer-item-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawer-sub-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px 6px 34px;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.drawer-select {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  outline: none;
+  cursor: pointer;
+}
+
 .drawer-item:hover {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);

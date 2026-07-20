@@ -24,16 +24,6 @@ export default function Navbar({ onToggleSidebar, onToggleRightDrawer }) {
 
   return (
     <header className="navbar-header-bar glass">
-      {/* Unified Brand Logo area on the far left */}
-      <div className="navbar-brand-group">
-        <Link to="/" className="navbar-logo-link" title="RAMS AI">
-          <div className="navbar-logo-box">
-            <RiRobot2Fill size={18} />
-          </div>
-          <span className="navbar-brand-text">RAMS</span>
-        </Link>
-      </div>
-
       <div className="navbar-left-content">
         {/* Mobile Sidebar Menu trigger */}
         <button 

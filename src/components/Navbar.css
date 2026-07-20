@@ -1,71 +1,24 @@
 .navbar-header-bar {
   position: fixed;
   top: 0;
-  left: 0; /* Always spans full width, does not move */
+  left: 68px; /* Beside left Ribbon column */
   right: 0;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0; /* Pad internal containers individually */
-  z-index: 1020; /* Sits on top of sidebars */
+  padding: 0 20px;
+  z-index: 1010;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg-glass);
   backdrop-filter: blur(20px);
 }
 
-/* Unified Brand Logo column on the left (68px wide to match Ribbon) */
-.navbar-brand-group {
-  width: 68px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-.navbar-logo-link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  gap: 2px;
-}
-
-.navbar-logo-box {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.25);
-  transition: transform var(--transition-fast);
-}
-
-.navbar-logo-link:hover .navbar-logo-box {
-  transform: scale(1.08);
-}
-
-.navbar-brand-text {
-  font-family: var(--font-heading);
-  font-size: 0.44rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  letter-spacing: 0.5px;
-}
-
-/* Content area next to brand column */
+/* Content area next to Ribbon */
 .navbar-left-content {
-  flex: 1;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding-left: 20px;
   min-width: 0;
 }
 
@@ -166,15 +119,15 @@
 }
 
 @media (max-width: 768px) {
+  .navbar-header-bar {
+    left: 0;
+  }
+
   .navbar-mobile-trigger {
     display: flex;
   }
   
-  .navbar-brand-group {
-    display: none; /* Hide brand column on mobile to save space */
-  }
-  
   .navbar-left-content {
-    padding-left: 12px;
+    padding-left: 0;
   }
 }

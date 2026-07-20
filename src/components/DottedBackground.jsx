@@ -2,13 +2,10 @@ import { useEffect, useRef } from 'react';
 
 /**
  * High-Fidelity Interactive Dotted Background Canvas.
- * - Draws a subtle grid of dots.
- * - Pulls dots closer to cursor/touch point using attraction physics.
- * - Simulates decibel-controlled Web Audio synth blips (ticks) on interaction.
- * - Triggers soft hardware vibrations on touch devices.
- * - Adapts colors dynamically to light/dark modes.
- * - Handles phone swipe tracking and springs back dot alignment.
- * - Propagates a fading wave ripple across coordinates on sidebar expand/collapse triggers.
+ * - Subtle grid of dots.
+ * - Gently nudges dots towards cursor (max 6px offset) without dancing or clumping.
+ * - Triggers Web Audio synth blips & haptic feedback STRICTLY on cursor/finger movement.
+ * - Volume and Haptic intensity configurable via localStorage settings.
  */
 export default function DottedBackground({ waveTrigger }) {
   const canvasRef = useRef(null);
@@ -22,10 +19,9 @@ export default function DottedBackground({ waveTrigger }) {
     let animationFrameId;
     let dots = [];
     let activeWaves = [];
-    const spacing = 32; // Grid spacing
-    const mouse = { x: null, y: null, radius: 120 };
+    const spacing = 32;
+    const mouse = { x: null, y: null, radius: 110 };
 
-    // Rate-limiting interaction sounds/vibrations to avoid spamming
     let lastSoundTime = 0;
     let lastVibrateTime = 0;
     let audioCtx = null;
@@ -34,8 +30,11 @@ export default function DottedBackground({ waveTrigger }) {
       const isSoundEnabled = localStorage.getItem('rams_dotted_sound') !== 'false';
       if (!isSoundEnabled) return;
 
+      const volSetting = parseFloat(localStorage.getItem('rams_dotted_sound_vol') || '0.25');
+      if (volSetting <= 0) return;
+
       const now = Date.now();
-      if (now - lastSoundTime < 80) return; // limit sound to once every 80ms
+      if (now - lastSoundTime < 60) return; // rate-limit blips
       lastSoundTime = now;
 
       try {
@@ -52,15 +51,15 @@ export default function DottedBackground({ waveTrigger }) {
         osc.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
-        // Very high subtle retro tick
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.05);
+        // Crisp audio synth blip
+        osc.frequency.setValueAtTime(960, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.06);
 
-        gainNode.gain.setValueAtTime(0.008, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+        gainNode.gain.setValueAtTime(volSetting * 0.12, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.06);
 
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.05);
+        osc.stop(audioCtx.currentTime + 0.06);
       } catch (e) {
         console.error('AudioContext synth blip failed:', e);
       }
@@ -70,11 +69,16 @@ export default function DottedBackground({ waveTrigger }) {
       const isHapticEnabled = localStorage.getItem('rams_dotted_haptic') !== 'false';
       if (!isHapticEnabled || !navigator.vibrate) return;
 
+      const level = localStorage.getItem('rams_dotted_haptic_level') || 'mid';
+      if (level === 'off') return;
+
+      const duration = level === 'high' ? 45 : (level === 'low' ? 10 : 25);
+
       const now = Date.now();
-      if (now - lastVibrateTime < 180) return; // limit vibration to once every 180ms
+      if (now - lastVibrateTime < 140) return;
       lastVibrateTime = now;
 
-      navigator.vibrate(5); // Ultra short tick
+      navigator.vibrate(duration);
     };
 
     const initDots = () => {
@@ -89,8 +93,6 @@ export default function DottedBackground({ waveTrigger }) {
             baseY: y,
             x: x,
             y: y,
-            vx: 0,
-            vy: 0,
             size: 1.5,
           });
         }
@@ -101,9 +103,24 @@ export default function DottedBackground({ waveTrigger }) {
       initDots();
     };
 
+    const checkProximityTrigger = (mouseX, mouseY) => {
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
+        const dx = mouseX - dot.baseX;
+        const dy = mouseY - dot.baseY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 60) {
+          playInteractionBlip();
+          triggerVibration();
+          break; // trigger once per movement
+        }
+      }
+    };
+
     const handleMouseMove = (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
+      checkProximityTrigger(e.clientX, e.clientY);
     };
 
     const handleMouseLeave = () => {
@@ -111,11 +128,11 @@ export default function DottedBackground({ waveTrigger }) {
       mouse.y = null;
     };
 
-    // Phone / Mobile Touch support
     const handleTouchStart = (e) => {
       if (e.touches.length > 0) {
         mouse.x = e.touches[0].clientX;
         mouse.y = e.touches[0].clientY;
+        checkProximityTrigger(mouse.x, mouse.y);
       }
     };
 
@@ -123,6 +140,7 @@ export default function DottedBackground({ waveTrigger }) {
       if (e.touches.length > 0) {
         mouse.x = e.touches[0].clientX;
         mouse.y = e.touches[0].clientY;
+        checkProximityTrigger(mouse.x, mouse.y);
       }
     };
 
@@ -135,7 +153,6 @@ export default function DottedBackground({ waveTrigger }) {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
     
-    // Wire touch handlers directly
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
@@ -148,31 +165,23 @@ export default function DottedBackground({ waveTrigger }) {
 
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       
-      // Match themes accurately with high-contrast, premium colors
-      const baseDotColorStr = isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.18)';
-      const activeDotColorStr = isDark ? 'rgba(192, 132, 252, 0.5)' : 'rgba(15, 23, 42, 0.45)';
-
       const now = Date.now();
-
-      // Process and clean up completed waves
       activeWaves = activeWaves.filter(w => (now - w.startTime) < w.duration);
 
-      // Check if a new wave needs to be spawned from waveTrigger
       if (waveTrigger && waveTrigger !== waveTriggerRef.current) {
         waveTriggerRef.current = waveTrigger;
         activeWaves.push({
           startTime: now,
-          originX: 68, // Left sidebar bounds origin
-          speed: 800, // Pixels per second
-          duration: 1000, // ms duration of decay
-          amplitude: 36, // Max coordinate offset
-          wavelength: 180, // crest size
+          originX: 68,
+          speed: 750,
+          duration: 900,
+          amplitude: 28,
+          wavelength: 160,
         });
       }
 
       const isBackgroundEnabled = localStorage.getItem('rams_dotted_bg') !== 'false';
       if (!isBackgroundEnabled) {
-        // If background is toggled off, only keep animation loop running to track triggers
         animationFrameId = requestAnimationFrame(animate);
         return;
       }
@@ -180,15 +189,15 @@ export default function DottedBackground({ waveTrigger }) {
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i];
 
-        let dx = 0;
-        let dy = 0;
-        let dist = 0;
+        let pullX = 0;
+        let pullY = 0;
         let isClose = false;
+        let dist = 0;
 
-        // 1. Mouse/Touch Attraction Physics
+        // 1. Gentle Nudge attraction physics towards cursor (max 6px)
         if (mouse.x !== null && mouse.y !== null) {
-          dx = mouse.x - dot.x;
-          dy = mouse.y - dot.y;
+          const dx = mouse.x - dot.baseX;
+          const dy = mouse.y - dot.baseY;
           dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < mouse.radius) {
@@ -196,22 +205,14 @@ export default function DottedBackground({ waveTrigger }) {
             const force = (mouse.radius - dist) / mouse.radius;
             const angle = Math.atan2(dy, dx);
 
-            // Pull dot closer to cursor (attraction force)
-            const pullX = Math.cos(angle) * force * 7.5;
-            const pullY = Math.sin(angle) * force * 7.5;
-
-            dot.vx += pullX;
-            dot.vy += pullY;
-
-            // Trigger feedback effects when dot gets pulled
-            if (dist < 40) {
-              playInteractionBlip();
-              triggerVibration();
-            }
+            // Nudge dot max 6px towards cursor
+            const maxNudge = 6.0;
+            pullX = Math.cos(angle) * force * maxNudge;
+            pullY = Math.sin(angle) * force * maxNudge;
           }
         }
 
-        // 2. Wave Ripple Offset calculations
+        // 2. Wave Ripple Offset
         let waveDisplacementX = 0;
         let waveOpacityMultiplier = 1.0;
 
@@ -230,37 +231,28 @@ export default function DottedBackground({ waveTrigger }) {
               if (decay > 0) {
                 const phase = ((distanceToOrigin - waveFront) / wave.wavelength) * Math.PI;
                 waveDisplacementX += Math.sin(phase) * wave.amplitude * decay;
-                waveOpacityMultiplier += 0.85 * decay;
+                waveOpacityMultiplier += 0.8 * decay;
               }
             }
           }
         }
 
-        // 3. Return Spring physics back to original baseline grid position (adjusted by wave offset)
-        const targetX = dot.baseX + waveDisplacementX;
-        const returnForceX = (targetX - dot.x) * 0.06;
-        const returnForceY = (dot.baseY - dot.y) * 0.06;
+        // Smooth Lerp to target position (no velocity accumulation)
+        const targetX = dot.baseX + pullX + waveDisplacementX;
+        const targetY = dot.baseY + pullY;
 
-        dot.vx += returnForceX;
-        dot.vy += returnForceY;
+        dot.x += (targetX - dot.x) * 0.14;
+        dot.y += (targetY - dot.y) * 0.14;
 
-        // Apply friction damping
-        dot.vx *= 0.82;
-        dot.vy *= 0.82;
-
-        dot.x += dot.vx;
-        dot.y += dot.vy;
-
-        // 4. Draw Dot
+        // Draw Dot
         ctx.beginPath();
         const currentSize = isClose 
-          ? dot.size + (1 - dist / mouse.radius) * 1.5 
+          ? dot.size + (1 - dist / mouse.radius) * 0.8 
           : dot.size;
           
         ctx.arc(dot.x, dot.y, currentSize, 0, Math.PI * 2);
 
-        // Adjust color opacity based on active waves and mouse closeness
-        let alpha = isClose ? 0.5 + (1 - dist / mouse.radius) * 0.3 : 0.22;
+        let alpha = isClose ? 0.35 + (1 - dist / mouse.radius) * 0.25 : 0.2;
         alpha *= waveOpacityMultiplier;
         
         ctx.fillStyle = isClose || waveDisplacementX !== 0
