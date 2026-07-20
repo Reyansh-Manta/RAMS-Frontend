@@ -17,6 +17,14 @@ export default function Ribbon({ onToggleRightDrawer }) {
 
   return (
     <aside className="app-ribbon glass">
+      {/* Top RAMS Logo */}
+      <Link to="/" className="ribbon-brand" title="RAMS AI">
+        <div className="ribbon-logo">
+          <RiRobot2Fill size={18} />
+        </div>
+        <span className="ribbon-brand-text">RAMS</span>
+      </Link>
+
       {/* Middle Navigation Group */}
       <nav className="ribbon-nav">
         <Link
